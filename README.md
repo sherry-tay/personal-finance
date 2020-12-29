@@ -1,8 +1,7 @@
 # personal-finance
 
-To run (Windows):
+To run (Windows Powershell):
 
 ```
-go build
-.\personal-finance.exe
+go build; .\personal-finance.exe
 ```

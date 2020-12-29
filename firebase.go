@@ -44,6 +44,8 @@ func main() {
 
 	fmt.Println(getAveragePrice(stocksList))
 
+	fmt.Println(getCurrentPrice("G3B", "etfs"))
+
 	defer client.Close()
 }
 
