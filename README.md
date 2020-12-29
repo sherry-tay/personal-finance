@@ -1,7 +1,8 @@
 # personal-finance
 
-To run:
+To run (Windows):
 
 ```
-go run firebase.go
+go build
+.\personal-finance.exe
 ```

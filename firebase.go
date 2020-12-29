@@ -42,11 +42,13 @@ func main() {
 
 	fmt.Println(stocksList)
 
+	fmt.Println(getAveragePrice(stocksList))
+
 	defer client.Close()
 }
 
 type Stock struct {
 	Code    string  	`firestore:"Code"`
 	Price 	float64 	`firestore:"Price"`
-	Volume 	int64 		`firestore:"Volume"`
+	Volume 	int 		`firestore:"Volume"`
 }
