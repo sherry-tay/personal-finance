@@ -7,7 +7,6 @@ import (
 
 	firebase "firebase.google.com/go"
 	"google.golang.org/api/option"
-	"google.golang.org/api/iterator"
 )
 
 var serviceAccountFilePath = "personal-finance-admin.json"
@@ -27,16 +26,27 @@ func main() {
 	}
 
 	iter := client.Collection(stocksCollectionName).Documents(ctx)
-	for {
-		doc, err := iter.Next()
-		if err == iterator.Done {
-			break
-		}
-		if err != nil {
-			log.Fatalf("Failed to iterate: %v", err)
-		}
-		fmt.Println(doc.Data())
+	docs, err := iter.GetAll()
+	if err != nil {
+		log.Fatalf("Failed to get documents: %v", err)
 	}
 
+	var stocksList []Stock
+	for _, doc := range docs {
+		var s Stock
+		if err := doc.DataTo(&s); err != nil {
+			log.Fatalf("Failed to transform: %v", err)
+		}
+		stocksList = append(stocksList, s)
+	}
+
+	fmt.Println(stocksList)
+
 	defer client.Close()
+}
+
+type Stock struct {
+	Code    string  	`firestore:"Code"`
+	Price 	float64 	`firestore:"Price"`
+	Volume 	int64 		`firestore:"Volume"`
 }
