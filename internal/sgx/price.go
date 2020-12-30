@@ -20,17 +20,3 @@ func GetCurrentPrice(code, category string) float64 {
 	defer resp.Body.Close()
 	return message.Data.Prices[0].LastTraded
 }
-
-type SecuritiesData struct {
-	Data SecuritiesPrices `json:"data"`
-} 
-
-type SecuritiesPrices struct {
-	Prices []SecuritiesPrice `json:"prices"`
-}
-
-type SecuritiesPrice struct {
-	Code 		string 	`json:"nc"`
-	Type 		string 	`json:"type"`
-	LastTraded 	float64 `json:"lt"`
-}
