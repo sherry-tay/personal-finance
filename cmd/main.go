@@ -8,6 +8,9 @@ import (
 )
 
 func main() {
-	firebase.Initialise()
-	fmt.Println(sgx.GetCurrentPrice("G3B"))
+	averagePrice := firebase.GetHoldings()
+	for key, value := range averagePrice {
+		current := sgx.GetCurrentPrice(key)
+		fmt.Printf("Current %v, Average %v, Difference %v\n", current, value, current - value)
+	}
 }

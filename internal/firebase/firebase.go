@@ -12,7 +12,7 @@ import (
 var serviceAccountFilePath = "../internal/firebase/personal-finance-admin.json"
 var stocksCollectionName = "stocks"
 
-func Initialise() {
+func GetHoldings() map[string]float64 {
 	ctx := context.Background()
 	sa := option.WithCredentialsFile(serviceAccountFilePath)
 	app, err := firebase.NewApp(ctx, nil, sa)
@@ -45,6 +45,8 @@ func Initialise() {
 	fmt.Println(getAveragePrice(stocksList))
 
 	defer client.Close()
+
+	return getAveragePrice(stocksList)
 }
 
 func getAveragePrice(list []Stock) map[string]float64 {
