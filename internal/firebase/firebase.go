@@ -12,7 +12,7 @@ import (
 var serviceAccountFilePath = "../internal/firebase/personal-finance-admin.json"
 var stocksCollectionName = "stocks"
 
-func GetHoldings() map[string]float64 {
+func GetHoldings() map[string]Stock {
 	ctx := context.Background()
 	sa := option.WithCredentialsFile(serviceAccountFilePath)
 	app, err := firebase.NewApp(ctx, nil, sa)
@@ -42,21 +42,19 @@ func GetHoldings() map[string]float64 {
 
 	fmt.Println(stocksList)
 
-	fmt.Println(getAveragePrice(stocksList))
-
 	defer client.Close()
 
 	return getAveragePrice(stocksList)
 }
 
-func getAveragePrice(list []Stock) map[string]float64 {
+func getAveragePrice(list []Stock) map[string]Stock {
 	collatedMap := make(map[string][]Stock)
 
 	for _, stock := range list {
 		collatedMap[stock.Code] = append(collatedMap[stock.Code], stock)
 	}
 
-	averagedMap := make(map[string]float64)
+	averaged := make(map[string]Stock)
 
 	for code, stocks := range collatedMap {
 		sumProduct := 0.0
@@ -65,10 +63,14 @@ func getAveragePrice(list []Stock) map[string]float64 {
 			 sumProduct += stock.Price * float64(stock.Volume)
 			 volume += stock.Volume
 		}
-		averagedMap[code] = sumProduct / float64(volume)
+		averaged[code] = Stock {
+			Code: code,
+			Price: sumProduct / float64(volume),
+			Volume: volume,
+		}
 	}
 
-	return averagedMap
+	return averaged
 }
 
 type Stock struct {
