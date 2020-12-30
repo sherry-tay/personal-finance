@@ -30,5 +30,7 @@ type SecuritiesPrices struct {
 }
 
 type SecuritiesPrice struct {
-	LastTraded float64 `json:"lt"`
+	Code 		string 	`json:"nc"`
+	Type 		string 	`json:"type"`
+	LastTraded 	float64 `json:"lt"`
 }
