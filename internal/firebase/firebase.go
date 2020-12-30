@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"log"
 	
-	"personal.finance/internal/sgx"
-
 	firebase "firebase.google.com/go"
 	"google.golang.org/api/option"
 )
@@ -45,8 +43,6 @@ func Initialise() {
 	fmt.Println(stocksList)
 
 	fmt.Println(getAveragePrice(stocksList))
-
-	fmt.Println(sgx.GetCurrentPrice("G3B", "etfs"))
 
 	defer client.Close()
 }
