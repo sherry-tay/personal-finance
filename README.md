@@ -3,5 +3,6 @@
 To run (Windows Powershell):
 
 ```
-go build; .\personal-finance.exe
+cd cmd
+go build; .\cmd.exe
 ```

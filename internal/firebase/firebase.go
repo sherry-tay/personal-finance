@@ -1,18 +1,20 @@
-package main
+package firebase
 
 import (
 	"context"
 	"fmt"
 	"log"
+	
+	"personal.finance/internal/sgx"
 
 	firebase "firebase.google.com/go"
 	"google.golang.org/api/option"
 )
 
-var serviceAccountFilePath = "personal-finance-admin.json"
+var serviceAccountFilePath = "../internal/firebase/personal-finance-admin.json"
 var stocksCollectionName = "stocks"
 
-func main() {
+func Initialise() {
 	ctx := context.Background()
 	sa := option.WithCredentialsFile(serviceAccountFilePath)
 	app, err := firebase.NewApp(ctx, nil, sa)
@@ -44,9 +46,31 @@ func main() {
 
 	fmt.Println(getAveragePrice(stocksList))
 
-	fmt.Println(getCurrentPrice("G3B", "etfs"))
+	fmt.Println(sgx.GetCurrentPrice("G3B", "etfs"))
 
 	defer client.Close()
+}
+
+func getAveragePrice(list []Stock) map[string]float64 {
+	collatedMap := make(map[string][]Stock)
+
+	for _, stock := range list {
+		collatedMap[stock.Code] = append(collatedMap[stock.Code], stock)
+	}
+
+	averagedMap := make(map[string]float64)
+
+	for code, stocks := range collatedMap {
+		sumProduct := 0.0
+		volume := 0
+		for _, stock := range stocks {
+			 sumProduct += stock.Price * float64(stock.Volume)
+			 volume += stock.Volume
+		}
+		averagedMap[code] = sumProduct / float64(volume)
+	}
+
+	return averagedMap
 }
 
 type Stock struct {

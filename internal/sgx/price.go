@@ -1,4 +1,4 @@
-package main
+package sgx
 
 import (
 	"encoding/json"
@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func getCurrentPrice(code, category string) float64 {
+func GetCurrentPrice(code, category string) float64 {
 	resp, err := http.Get("https://api.sgx.com/securities/v1.1/" + category + "/code/" + code)
 	if err != nil {
 		log.Fatalf("Failed to get securities data: %v", err)
