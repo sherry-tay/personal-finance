@@ -9,5 +9,5 @@ import (
 
 func main() {
 	firebase.Initialise()
-	fmt.Println(sgx.GetCurrentPrice("G3B", "etfs"))
+	fmt.Println(sgx.GetCurrentPrice("G3B"))
 }
