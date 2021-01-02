@@ -9,15 +9,19 @@ import (
 )
 
 func main() {
-	totalProfit := 0.0
+	totalPortfolio, totalInvested := 0.0, 0.0
 	averagePrice := firebase.GetHoldings()
 	for key, value := range averagePrice {
 		current := sgx.GetCurrentPrice(key)
 		diff, percentage, profit := getProfit(current, value.Price, value.Volume)
-		fmt.Printf("%v: Current %v, Average %v, Difference %v %v%%, Volume %v, Profit %v\n", key, current, value.Price, diff, percentage, value.Volume, profit)
-		totalProfit += profit
+		fmt.Printf("%v: Current %v, Average %v, Difference %v (%v%%), Volume %v, Profit %v\n", key, current, value.Price, diff, percentage, value.Volume, profit)
+		totalPortfolio += current * float64(value.Volume)
+		totalInvested += value.Price * float64(value.Volume)
 	}
-	fmt.Printf("Capital gains: %v\n", totalProfit)
+	totalDiff, totalPercentage, _ := getProfit(totalPortfolio, totalInvested, 0)
+	fmt.Printf("Current portfolio: %v\n", round(totalPortfolio))
+	fmt.Printf("Total invested: %v\n", round(totalInvested))
+	fmt.Printf("Capital gains: %v (%v%%)\n", totalDiff, totalPercentage)
 }
 
 func getProfit(current, average float64, volume int) (float64, float64, float64) {
