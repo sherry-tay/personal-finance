@@ -1,0 +1,4 @@
+[
+    {"code": "ABC","price": 1.2621,"volume": 100,"date": "20201231","in": "CDP"},
+    {"code": "DEF","price": 3.163600,"volume": 200,"date": "20210101","in": "CDP"}
+]
