@@ -21,7 +21,11 @@ func main() {
 }
 
 func getProfit(current, average float64, volume int) (float64, float64) {
+	diff := (current - average)
+	return round(diff), round(diff * float64(volume))
+}
+
+func round(val float64) float64 {
 	precisionFactor := 1000.0
-	diff := (current - average) * precisionFactor
-	return math.Round(diff)/precisionFactor, math.Round(diff * float64(volume))/precisionFactor
+	return math.Round(val * precisionFactor)/precisionFactor
 }
