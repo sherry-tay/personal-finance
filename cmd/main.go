@@ -6,6 +6,7 @@ import (
 
 	"personal.finance/internal/firebase"
 	"personal.finance/internal/sgx"
+	"personal.finance/internal/telegram"
 )
 
 func main() {
@@ -22,6 +23,8 @@ func main() {
 	fmt.Printf("Current portfolio: %v\n", round(totalPortfolio))
 	fmt.Printf("Total invested: %v\n", round(totalInvested))
 	fmt.Printf("Capital gains: %v (%v%%)\n", totalDiff, totalPercentage)
+
+	telegram.Initialize()
 }
 
 func getProfit(current, average float64, volume int) (float64, float64, float64) {

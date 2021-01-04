@@ -3,6 +3,9 @@
 ## Using Windows Powershell
 
 To run:
+1. Update variables in `telegram/private.go`
+
+1. Run the following command:
 
 ```
 cd cmd
