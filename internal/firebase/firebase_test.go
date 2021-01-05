@@ -8,7 +8,7 @@ import (
 func TestGetAveragePrice(t *testing.T) {
 	tests := []struct {
 		input []Stock
-		expected map[string]float64
+		expected map[string]Stock
 	}{
 		{
 			input: []Stock {
@@ -23,9 +23,17 @@ func TestGetAveragePrice(t *testing.T) {
 					Volume: 100,
 				},
 			},
-			expected: map[string]float64 {
-				"ABC": 2.0,
-				"DEF": 5.0,
+			expected: map[string]Stock {
+				"ABC": Stock {
+					Code: "ABC",
+					Price: 2.0,
+					Volume: 100,
+				},
+				"DEF": Stock {
+					Code: "DEF",
+					Price: 5.0,
+					Volume: 100,
+				},
 			},
 		},
 		{
@@ -51,9 +59,17 @@ func TestGetAveragePrice(t *testing.T) {
 					Volume: 300,
 				},
 			},
-			expected: map[string]float64 {
-				"ABC": 7.2,
-				"DEF": 5.0,
+			expected: map[string]Stock {
+				"ABC": Stock {
+					Code: "ABC",
+					Price: 7.2,
+					Volume: 500,
+				},
+				"DEF": Stock {
+					Code: "DEF",
+					Price: 5.0,
+					Volume: 100,
+				},
 			},
 		},
 	}
