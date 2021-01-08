@@ -13,6 +13,7 @@ import (
 	"github.com/olekukonko/tablewriter"
 )
 
+// Initialize the Telegram bot
 func Initialize() {
 	bot, err := tgbotapi.NewBotAPI(telegramBotToken)
 	if err != nil {
