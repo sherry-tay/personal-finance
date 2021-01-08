@@ -84,3 +84,23 @@ scripts/update_firestore.py
 ```
 
 Note: `chmod +x scripts/update_firestore.py` and `pip3 install` only needs to be run if permission is denied and Firebase SDK has not yet been installed respectively
+
+To run Telegram bot with webhook locally using ngrok
+
+1. Run the below to secure a public URL for port 80 web server
+
+```
+ngrok http 80
+```
+
+Note: For a web interface for debugging incoming connections, use `http://127.0.0.1:4040`
+
+1. Set https public url as an environment variable
+
+```
+export TELEGRAM_WEBHOOK_URL=<url>
+```
+
+1. Run Go application as per normal
+
+Note: Use the same terminal session to run the application as the one used to set the environment variable

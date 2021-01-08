@@ -2,8 +2,10 @@ package telegram
 
 import (
 	"fmt"
+	"net/http"
 	"log"
 	"math"
+	"os"
 	"strings"
 
 	"personal.finance/internal/firebase"
@@ -12,6 +14,8 @@ import (
 	"github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/olekukonko/tablewriter"
 )
+
+var webhookURL = os.Getenv("TELEGRAM_WEBHOOK_URL")
 
 // Initialize the Telegram bot
 func Initialize() {
@@ -23,10 +27,12 @@ func Initialize() {
 
 	log.Printf("Authorized on account %s", bot.Self.UserName)
 
-	u := tgbotapi.NewUpdate(0)
-	u.Timeout = 60
+	if _, err = bot.SetWebhook(tgbotapi.NewWebhook(webhookURL + "/" + bot.Token)); err != nil {
+		log.Fatalf("Failed to set webhook for Telegram bot: %v", err)
+	}
 
-	updates, err := bot.GetUpdatesChan(u)
+	updates := bot.ListenForWebhook("/" + bot.Token)
+	go http.ListenAndServe("0.0.0.0:80", nil)
 
 	for update := range updates {
 		if update.Message == nil {
