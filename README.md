@@ -1,9 +1,16 @@
 # personal-finance
 
+1. [Using Windows Powershell](#using-windows-powershell)
+1. [Using MacOS](#using-macOS)
+1. [Create webhook locally using ngrok](#create-webhook-locally-using-ngrok)
+
 ## Using Windows Powershell
 
-To run:
-1. Update variables in `telegram/private.go`
+### To run:
+
+1. Add `TELEGRAM_BOT_TOKEN` and `TELEGRAM_WEBHOOK_URL` as environment variables
+
+1. Update `authorizedUser` variable in `telegram/telegram.go` to Telegram username
 
 1. Run the following command:
 
@@ -12,19 +19,19 @@ cd cmd
 go build; .\cmd.exe
 ```
 
-To run a specific test e.g.:
+### To run a specific test e.g.:
 
 ```
 go test .\internal\firebase\
 ```
 
-To update SGX securities category info:
+### To update SGX securities category info:
 
 ```
 python .\scripts\fetch_code.py
 ```
 
-To update stock holdings in FireStore:
+### To update stock holdings in FireStore:
 
 1. Add a JSON file in `data` folder following the format of `stocks.json` in the `templates` directory
 
@@ -39,8 +46,10 @@ Note: `pip3.9 install` only needs to be run if Firebase SDK has not yet been ins
 
 ## Using MacOS
 
-To run:
-1. Update variables in `telegram/private.go`
+### To run:
+1. Add `TELEGRAM_BOT_TOKEN` and `TELEGRAM_WEBHOOK_URL` as environment variables
+
+1. Update `authorizedUser` variable in `telegram/telegram.go` to Telegram username
 
 1. Run the following command:
 
@@ -56,13 +65,13 @@ cd cmd
 go run main.go
 ```
 
-To run a specific test e.g.:
+### To run a specific test e.g.:
 
 ```
 go test ./internal/firebase/
 ```
 
-To update SGX securities category info:
+### To update SGX securities category info:
 
 ```
 chmod +x scripts/fetch_code.py
@@ -71,7 +80,7 @@ scripts/fetch_code.py
 
 Note: `chmod +x scripts/fetch_code.py` only needs to be run if permission is denied
 
-To update stock holdings in FireStore:
+### To update stock holdings in FireStore:
 
 1. Add a JSON file in `data` folder following the format of `stocks.json` in the `templates` directory
 
@@ -85,7 +94,7 @@ scripts/update_firestore.py
 
 Note: `chmod +x scripts/update_firestore.py` and `pip3 install` only needs to be run if permission is denied and Firebase SDK has not yet been installed respectively
 
-To run Telegram bot with webhook locally using ngrok
+## Create webhook locally using ngrok
 
 1. Run the below to secure a public URL for port 80 web server
 

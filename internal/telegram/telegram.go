@@ -15,7 +15,9 @@ import (
 	"github.com/olekukonko/tablewriter"
 )
 
+var telegramBotToken = os.Getenv("TELEGRAM_BOT_TOKEN")
 var webhookURL = os.Getenv("TELEGRAM_WEBHOOK_URL")
+var authorizedUser = "AUTHORISED_USER"
 
 // Initialize the Telegram bot
 func Initialize() {
