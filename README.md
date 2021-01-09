@@ -2,6 +2,7 @@
 
 1. [Using Windows Powershell](#using-windows-powershell)
 1. [Using MacOS](#using-macOS)
+1. [Using Docker](#using-docker)
 1. [Create webhook locally using ngrok](#create-webhook-locally-using-ngrok)
 
 ## Using Windows Powershell
@@ -93,6 +94,20 @@ scripts/update_firestore.py
 ```
 
 Note: `chmod +x scripts/update_firestore.py` and `pip3 install` only needs to be run if permission is denied and Firebase SDK has not yet been installed respectively
+
+## Using Docker
+
+### To run:
+1. Update `TELEGRAM_BOT_TOKEN` and `TELEGRAM_WEBHOOK_URL` in `Dockerfile`
+
+1. Update `authorizedUser` variable in `telegram/telegram.go` to Telegram username
+
+1. Run the following command:
+
+```
+docker build -t personal-finance .
+docker run -it --rm -p 80:80 --name personal-finance personal-finance
+```
 
 ## Create webhook locally using ngrok
 
