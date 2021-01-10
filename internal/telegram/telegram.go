@@ -40,13 +40,14 @@ func Initialize() {
 		if update.Message == nil {
 			continue
 		}
+
+		log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
+
 		if update.Message.Chat.UserName != authorizedUser || update.Message.Chat.Type != "private" {
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Sorry, this is a private personal bot!")
 			bot.Send(msg)
 			continue
 		}
-
-		log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
 
 		if update.Message.IsCommand() {
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
