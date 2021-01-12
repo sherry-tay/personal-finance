@@ -117,6 +117,12 @@ docker run -it --rm -p 80:80 --name personal-finance personal-finance
 ngrok http 80
 ```
 
+or for Windows Docker with IP `192.168.99.100`:
+
+```
+ngrok http 192.168.99.100:80
+```
+
 Note: For a web interface for debugging incoming connections, use `http://127.0.0.1:4040`
 
 1. Set https public url as an environment variable
