@@ -6,7 +6,9 @@ import (
 	"log"
 	"math"
 	"os"
+	"strconv"
 	"strings"
+	"time"
 
 	"personal.finance/internal/firebase"
 	"personal.finance/internal/sgx"
@@ -14,6 +16,8 @@ import (
 	"github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/olekukonko/tablewriter"
 )
+
+const dateInputFormat = "20060102" // 2006-Jan-02
 
 var telegramBotToken = os.Getenv("TELEGRAM_BOT_TOKEN")
 var webhookURL = os.Getenv("TELEGRAM_WEBHOOK_URL")
@@ -55,8 +59,8 @@ func Initialize() {
 			case "portfolio":
 				msg.ParseMode = "Markdown"
 				msg.Text = getStatistics()
-			case "sayhi":
-				msg.Text = "Hi :)"
+			case "add":
+				msg.Text = addHoldings(update.Message.CommandArguments())
 			case "status":
 				msg.Text = "I'm ok."
 			case "withArgument":
@@ -65,7 +69,7 @@ func Initialize() {
 				msg.ParseMode = "html"
 				msg.Text = "This will be interpreted as HTML, click <a href=\"https://www.example.com\">here</a>"
 			default:
-				msg.Text = "I don't know that command"
+				msg.Text = `Use one of the commands available. To add, follow the format: "/add <code> <price> <volume> <yyyymmdd> <stored location>" e.g. /add ABC 1.23 100 20210101 mybroker`
 			}
 			bot.Send(msg)
 		}
@@ -138,6 +142,36 @@ func formatTable(stockInfos []stockInfo) string {
 	 table.AppendBulk(formatted)
 	 table.Render()
 	 return tableString.String()
+}
+
+func addHoldings(arg string) string {
+	params := strings.Fields(arg)
+	if len(params) != 5 {
+		return "Not enough arguments supplied! Aborting..."
+	}
+
+	code := params[0]
+	price, priceErr := strconv.ParseFloat(params[1], 64)
+	volume, volumeErr := strconv.Atoi(params[2])
+	date, dateErr := time.Parse(dateInputFormat, params[3])
+	in := params[4]
+
+	if priceErr != nil || volumeErr != nil  || dateErr != nil {
+		return "Something went wrong while parsing the arguments... Please enter using the correct format."
+	}
+
+	id := params[3] + "-" + code
+
+	s := firebase.Stock {
+		Code: code,
+		Price: price,
+		Volume: volume,
+		Date: date,
+		StoredIn: in,
+	}
+	
+	firebase.AddHoldings(id, s)
+	return "Successfully added holdings!"
 }
 
 type stockInfo struct {

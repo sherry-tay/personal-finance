@@ -92,6 +92,7 @@ func AddHoldings(id string, stock Stock) {
 	}
 }
 
+// Stock as recorded in Firestore
 type Stock struct {
 	Code    	string  	`firestore:"code"`
 	Price 		float64 	`firestore:"price"`
