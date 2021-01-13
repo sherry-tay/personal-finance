@@ -1,4 +1,4 @@
-package firebase
+package firestore
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"google.golang.org/api/option"
 )
 
-var serviceAccountFilePath = "../internal/firebase/personal-finance-admin.json"
+var serviceAccountFilePath = "../internal/firestore/personal-finance-admin.json"
 var stocksCollectionName = "stocks"
 
 func getFirebaseClient() (*firestore.Client, context.Context) {

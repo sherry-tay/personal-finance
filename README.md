@@ -23,7 +23,7 @@ go build; .\cmd.exe
 ### To run a specific test e.g.:
 
 ```
-go test .\internal\firebase\
+go test .\internal\firestore\
 ```
 
 ### To update SGX securities category info:
@@ -69,7 +69,7 @@ go run main.go
 ### To run a specific test e.g.:
 
 ```
-go test ./internal/firebase/
+go test ./internal/firestore/
 ```
 
 ### To update SGX securities category info:

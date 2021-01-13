@@ -6,7 +6,7 @@ import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
 
-serviceAccountFilePath = 'internal/firebase/personal-finance-admin.json'
+serviceAccountFilePath = 'internal/firestore/personal-finance-admin.json'
 input_file = 'data/stocks.json'
 stocksCollectionName = 'stocks'
 

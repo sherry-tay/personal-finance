@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"personal.finance/internal/firebase"
+	"personal.finance/internal/firestore"
 	"personal.finance/internal/sgx"
 
 	"github.com/go-telegram-bot-api/telegram-bot-api"
@@ -80,7 +80,7 @@ func getStatistics() string {
 	var data []stockInfo
 	totalPortfolio, totalInvested := 0.0, 0.0
 
-	averagePrice := firebase.GetHoldings()
+	averagePrice := firestore.GetHoldings()
 
 	for key, value := range averagePrice {
 		current := sgx.GetCurrentPrice(key)
@@ -162,7 +162,7 @@ func addHoldings(arg string) string {
 
 	id := params[3] + "-" + code
 
-	s := firebase.Stock {
+	s := firestore.Stock {
 		Code: code,
 		Price: price,
 		Volume: volume,
@@ -170,7 +170,7 @@ func addHoldings(arg string) string {
 		StoredIn: in,
 	}
 	
-	firebase.AddHoldings(id, s)
+	firestore.AddHoldings(id, s)
 	return "Successfully added holdings!"
 }
 
