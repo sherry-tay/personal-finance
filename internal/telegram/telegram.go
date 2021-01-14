@@ -147,7 +147,7 @@ func formatTable(stockInfos []stockInfo) string {
 }
 
 func (fs *customFirestore) addHoldings(arg string) string {
-	params := strings.Fields(arg)
+	params := strings.SplitN(arg, " ", 5)
 	if len(params) != 5 {
 		return "Not enough arguments supplied! Aborting..."
 	}

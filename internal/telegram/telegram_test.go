@@ -156,6 +156,20 @@ func TestAddHoldings(t *testing.T) {
 			},
 		},
 		{
+			testName: "correct format with more than one word as stored location",
+			input: "ABC 1.23 100 20200131 my awesome broker",
+			expected: "Successfully added holdings!",
+			shouldRunAdd: true,
+			expectedID: "20200131-ABC",
+			expectedStock: firestore.Stock {
+				Code: "ABC",
+				Price: 1.23,
+				Volume: 100,
+				Date: time.Date(2020, time.January, 31, 0, 0, 0, 0, time.UTC),
+				StoredIn: "my awesome broker",
+			},
+		},
+		{
 			testName: "wrong price format",
 			input: "ABC S1.23 100 20200131 myBroker",
 			expected: "Something went wrong while parsing the arguments... Please enter using the correct format.",
