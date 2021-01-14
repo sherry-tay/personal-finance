@@ -9,9 +9,7 @@
 
 ### To run:
 
-1. Add `TELEGRAM_BOT_TOKEN` and `TELEGRAM_WEBHOOK_URL` as environment variables
-
-1. Update `authorizedUser` variable in `telegram/telegram.go` to Telegram username
+1. Add `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_URL` and `AUTHORIZED_USER` (Telegram username) as environment variables
 
 1. Run the following command:
 
@@ -48,9 +46,8 @@ Note: `pip3.9 install` only needs to be run if Firebase SDK has not yet been ins
 ## Using MacOS
 
 ### To run:
-1. Add `TELEGRAM_BOT_TOKEN` and `TELEGRAM_WEBHOOK_URL` as environment variables
 
-1. Update `authorizedUser` variable in `telegram/telegram.go` to Telegram username
+1. Add `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_URL` and `AUTHORIZED_USER` (Telegram username) as environment variables
 
 1. Run the following command:
 
@@ -98,9 +95,7 @@ Note: `chmod +x scripts/update_firestore.py` and `pip3 install` only needs to be
 ## Using Docker
 
 ### To run:
-1. Update `TELEGRAM_BOT_TOKEN` and `TELEGRAM_WEBHOOK_URL` in `Dockerfile`
-
-1. Update `authorizedUser` variable in `telegram/telegram.go` to Telegram username
+1. Update `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_URL` and `AUTHORIZED_USER` (Telegram username) in `Dockerfile`
 
 1. Run the following command:
 

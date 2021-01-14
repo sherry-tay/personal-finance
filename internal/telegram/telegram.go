@@ -21,7 +21,7 @@ const dateInputFormat = "20060102" // 2006-Jan-02
 
 var telegramBotToken = os.Getenv("TELEGRAM_BOT_TOKEN")
 var webhookURL = os.Getenv("TELEGRAM_WEBHOOK_URL")
-var authorizedUser = "AUTHORISED_USER"
+var authorizedUser = os.Getenv("AUTHORIZED_USER")
 
 // Initialize the Telegram bot
 func Initialize() {
