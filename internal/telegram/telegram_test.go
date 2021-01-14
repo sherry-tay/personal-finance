@@ -2,6 +2,9 @@ package telegram
 
 import (
 	"testing"
+	"time"
+
+	"personal.finance/internal/firestore"
 )
 
 func TestGetProfit(t *testing.T) {
@@ -38,6 +41,218 @@ func TestGetProfit(t *testing.T) {
 		t.Run("Test getProfit", func(t *testing.T) {
 			if actualDiff, actualPercentage, actualProfit := getProfit(test.input.current, test.input.average, test.input.volume); actualDiff != test.expectedDiff || actualPercentage != test.expectedPercentage || actualProfit != test.expectedProfit {
 				t.Errorf("getProfit() = %v %v %v, expected  %v %v %v", actualDiff, actualPercentage, actualProfit, test.expectedDiff, test.expectedPercentage, test.expectedProfit)
+			}
+		})
+	}
+}
+
+func TestGetStatistics(t *testing.T) {
+	tests := []struct {
+		firestoreInput map[string]firestore.Stock
+		sgxInput map[string]float64
+		expected string
+	}{
+		{
+			firestoreInput: map[string]firestore.Stock {
+				"ABC": firestore.Stock {
+					Code: "ABC",
+					Price: 1.234,
+					Volume: 100,
+				},
+				"DEF": firestore.Stock {
+					Code: "DEF",
+					Price: 5.67,
+					Volume: 87,
+				},
+			},
+			sgxInput: map[string]float64 {
+				"ABC": 3.18,
+				"DEF": 2.5,
+			},
+			expected: "```" + 
+`
+| CODE |  NOW  |  AVG  |  DIFF  |    %    | VOL |  TOTAL   |
+|------|-------|-------|--------|---------|-----|----------|
+| ABC  | 3.180 | 1.234 |  1.946 | 157.699 | 100 |  194.600 |
+| DEF  | 2.500 | 5.670 | -3.170 | -55.908 |  87 | -275.790 |
+` + "```" + 
+`
+Current portfolio: 535.500
+Total invested: 616.690
+Capital gains: -81.190 (-13.165%)`,
+		},
+		{
+			firestoreInput: map[string]firestore.Stock {
+				"A00": firestore.Stock {
+					Code: "A00",
+					Price: 42,
+					Volume: 1000,
+				},
+				"ZYX": firestore.Stock {
+					Code: "ZYX",
+					Price: 185,
+					Volume: 200,
+				},
+				"JKLM": firestore.Stock {
+					Code: "JKLM",
+					Price: 0.5,
+					Volume: 1,
+				},
+			},
+			sgxInput: map[string]float64 {
+				"A00": 78,
+				"ZYX": 220.2,
+				"JKLM": 0.18,
+			},
+			expected: "```" + 
+`
+| CODE |   NOW   |   AVG   |  DIFF  |    %    | VOL  |   TOTAL   |
+|------|---------|---------|--------|---------|------|-----------|
+| A00  |  78.000 |  42.000 | 36.000 |  85.714 | 1000 | 36000.000 |
+| ZYX  | 220.200 | 185.000 | 35.200 |  19.027 |  200 |  7040.000 |
+| JKLM |   0.180 |   0.500 | -0.320 | -64.000 |    1 |    -0.320 |
+` + "```" + 
+`
+Current portfolio: 122040.180
+Total invested: 79000.500
+Capital gains: 43039.680 (54.480%)`,
+		},
+	}
+
+	for _, test := range tests {
+		fs := &customFirestore {
+			read: func() map[string]firestore.Stock { return test.firestoreInput },
+			add: func(id string, s firestore.Stock) { t.Error("Should not call add") },
+		}
+		sgx := &customSgx {
+			get: func(code string) float64 { return test.sgxInput[code] },
+		}
+		t.Run("Test getStatistics", func(t *testing.T) {
+			if actual := fs.getStatistics(sgx); actual != test.expected {
+				t.Errorf("getStatistics() = %v, expected  %v", actual, test.expected)
+			}
+		})
+	}
+}
+
+func TestAddHoldings(t *testing.T) {
+	tests := []struct {
+		testName, input, expected, expectedID string
+		shouldRunAdd bool
+		expectedStock firestore.Stock
+	}{
+		{
+			testName: "correct format",
+			input: "ABC 1.23 100 20200131 myBroker",
+			expected: "Successfully added holdings!",
+			shouldRunAdd: true,
+			expectedID: "20200131-ABC",
+			expectedStock: firestore.Stock {
+				Code: "ABC",
+				Price: 1.23,
+				Volume: 100,
+				Date: time.Date(2020, time.January, 31, 0, 0, 0, 0, time.UTC),
+				StoredIn: "myBroker",
+			},
+		},
+		{
+			testName: "wrong price format",
+			input: "ABC S1.23 100 20200131 myBroker",
+			expected: "Something went wrong while parsing the arguments... Please enter using the correct format.",
+			shouldRunAdd: false,
+			expectedID: "",
+			expectedStock: firestore.Stock {},
+		},
+		{
+			testName: "wrong price format",
+			input: "ABC 1.23N 100 20200131 myBroker",
+			expected: "Something went wrong while parsing the arguments... Please enter using the correct format.",
+			shouldRunAdd: false,
+			expectedID: "",
+			expectedStock: firestore.Stock {},
+		},
+		{
+			testName: "wrong price format",
+			input: "ABC $1.23 100 20200131 myBroker",
+			expected: "Something went wrong while parsing the arguments... Please enter using the correct format.",
+			shouldRunAdd: false,
+			expectedID: "",
+			expectedStock: firestore.Stock {},
+		},
+		{
+			testName: "wrong price format",
+			input: "ABC SGD1.23 100 20200131 myBroker",
+			expected: "Something went wrong while parsing the arguments... Please enter using the correct format.",
+			shouldRunAdd: false,
+			expectedID: "",
+			expectedStock: firestore.Stock {},
+		},
+		{
+			testName: "wrong volume format",
+			input: "ABC 1.23 10A0 20200131 myBroker",
+			expected: "Something went wrong while parsing the arguments... Please enter using the correct format.",
+			shouldRunAdd: false,
+			expectedID: "",
+			expectedStock: firestore.Stock {},
+		},
+		{
+			testName: "wrong date format",
+			input: "ABC 1.23 100 D20200131 myBroker",
+			expected: "Something went wrong while parsing the arguments... Please enter using the correct format.",
+			shouldRunAdd: false,
+			expectedID: "",
+			expectedStock: firestore.Stock {},
+		},
+		{
+			testName: "wrong date format",
+			input: "ABC 1.23 100 20200131D myBroker",
+			expected: "Something went wrong while parsing the arguments... Please enter using the correct format.",
+			shouldRunAdd: false,
+			expectedID: "",
+			expectedStock: firestore.Stock {},
+		},
+		{
+			testName: "invalid date",
+			input: "ABC 1.23 100 20200132 myBroker",
+			expected: "Something went wrong while parsing the arguments... Please enter using the correct format.",
+			shouldRunAdd: false,
+			expectedID: "",
+			expectedStock: firestore.Stock {},
+		},
+		{
+			testName: "invalid date",
+			input: "ABC 1.23 100 20201331 myBroker",
+			expected: "Something went wrong while parsing the arguments... Please enter using the correct format.",
+			shouldRunAdd: false,
+			expectedID: "",
+			expectedStock: firestore.Stock {},
+		},
+		{
+			testName: "not enough arguments",
+			input: "ABC 1.23 100 20200131",
+			expected: "Not enough arguments supplied! Aborting...",
+			shouldRunAdd: false,
+			expectedID: "",
+			expectedStock: firestore.Stock {},
+		},
+	}
+
+	for _, test := range tests {
+		var argID string
+		var argStock firestore.Stock
+		fs := &customFirestore {
+			read: func() map[string]firestore.Stock { 
+				t.Error("Should not call read") 
+				return map[string]firestore.Stock {}
+			},
+			add: func(id string, s firestore.Stock) { 
+				argID = id
+				argStock = s
+			 },
+		}
+		t.Run("Test addHoldings - " + test.testName, func(t *testing.T) {
+			if actual := fs.addHoldings(test.input); actual != test.expected || argID != test.expectedID || argStock != test.expectedStock {
+				t.Errorf("addHoldings() = %v %v %v, expected  %v %v %v", actual, argID, argStock, test.expected, test.expectedID, test.expectedStock)
 			}
 		})
 	}

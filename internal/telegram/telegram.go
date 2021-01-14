@@ -40,6 +40,8 @@ func Initialize() {
 	updates := bot.ListenForWebhook("/" + bot.Token)
 	go http.ListenAndServe("0.0.0.0:80", nil)
 
+	fs := newCustomFirestore()
+
 	for update := range updates {
 		if update.Message == nil {
 			continue
@@ -58,9 +60,9 @@ func Initialize() {
 			switch update.Message.Command() {
 			case "portfolio":
 				msg.ParseMode = "Markdown"
-				msg.Text = getStatistics()
+				msg.Text = fs.getStatistics(newCustomSgx())
 			case "add":
-				msg.Text = addHoldings(update.Message.CommandArguments())
+				msg.Text = fs.addHoldings(update.Message.CommandArguments())
 			case "status":
 				msg.Text = "I'm ok."
 			case "withArgument":
@@ -76,14 +78,14 @@ func Initialize() {
 	}
 }
 
-func getStatistics() string {
+func (fs *customFirestore) getStatistics(sgx *customSgx) string {
 	var data []stockInfo
 	totalPortfolio, totalInvested := 0.0, 0.0
 
-	averagePrice := firestore.GetHoldings()
+	averagePrice := fs.read()
 
 	for key, value := range averagePrice {
-		current := sgx.GetCurrentPrice(key)
+		current := sgx.get(key)
 		diff, percentage, profit := getProfit(current, value.Price, value.Volume)
 		
 		s := stockInfo {
@@ -144,7 +146,7 @@ func formatTable(stockInfos []stockInfo) string {
 	 return tableString.String()
 }
 
-func addHoldings(arg string) string {
+func (fs *customFirestore) addHoldings(arg string) string {
 	params := strings.Fields(arg)
 	if len(params) != 5 {
 		return "Not enough arguments supplied! Aborting..."
@@ -170,7 +172,7 @@ func addHoldings(arg string) string {
 		StoredIn: in,
 	}
 	
-	firestore.AddHoldings(id, s)
+	fs.add(id, s)
 	return "Successfully added holdings!"
 }
 
@@ -182,4 +184,29 @@ type stockInfo struct {
 	DiffPercentage float64
 	Volume int
 	Profit float64
+}
+
+type readFunction func() map[string]firestore.Stock
+type addFunction func(id string, s firestore.Stock)
+
+type customFirestore struct {
+	read readFunction
+    add addFunction
+}
+
+func newCustomFirestore() *customFirestore {
+	return &customFirestore {
+		read: firestore.GetHoldings,
+		add: firestore.AddHoldings,
+	}
+}
+
+type getCurrentPrice func(code string) float64
+
+type customSgx struct {
+	get getCurrentPrice
+}
+
+func newCustomSgx() *customSgx {
+	return &customSgx { get: sgx.GetCurrentPrice }
 }
