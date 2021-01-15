@@ -7,67 +7,67 @@ import (
 
 func TestGetAveragePrice(t *testing.T) {
 	tests := []struct {
-		input []Stock
+		input    []Stock
 		expected map[string]Stock
 	}{
 		{
-			input: []Stock {
+			input: []Stock{
 				{
-					Code: "ABC",
-					Price: 2.0,
+					Code:   "ABC",
+					Price:  2.0,
 					Volume: 100,
 				},
 				{
-					Code: "DEF",
-					Price: 5.0,
+					Code:   "DEF",
+					Price:  5.0,
 					Volume: 100,
 				},
 			},
-			expected: map[string]Stock {
-				"ABC": Stock {
-					Code: "ABC",
-					Price: 2.0,
+			expected: map[string]Stock{
+				"ABC": {
+					Code:   "ABC",
+					Price:  2.0,
 					Volume: 100,
 				},
-				"DEF": Stock {
-					Code: "DEF",
-					Price: 5.0,
+				"DEF": {
+					Code:   "DEF",
+					Price:  5.0,
 					Volume: 100,
 				},
 			},
 		},
 		{
-			input: []Stock {
+			input: []Stock{
 				{
-					Code: "ABC",
-					Price: 2.0,
+					Code:   "ABC",
+					Price:  2.0,
 					Volume: 100,
 				},
 				{
-					Code: "ABC",
-					Price: 4.0,
+					Code:   "ABC",
+					Price:  4.0,
 					Volume: 100,
 				},
 				{
-					Code: "DEF",
-					Price: 5.0,
+					Code:   "DEF",
+					Price:  5.0,
 					Volume: 100,
 				},
 				{
-					Code: "ABC",
-					Price: 10.0,
+					Code:   "ABC",
+					Price:  10.0,
 					Volume: 300,
 				},
 			},
-			expected: map[string]Stock {
-				"ABC": Stock {
-					Code: "ABC",
-					Price: 7.2,
+			expected: map[string]Stock{
+				"ABC": {
+					Code:   "ABC",
+					Price:  7.2,
 					Volume: 500,
 				},
-				"DEF": Stock {
-					Code: "DEF",
-					Price: 5.0,
+				"DEF": {
+					Code:   "DEF",
+					Price:  5.0,
 					Volume: 100,
 				},
 			},

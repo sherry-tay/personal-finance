@@ -88,15 +88,15 @@ func (fs *customFirestore) getStatistics(sgx *customSgx, formatter func(stockInf
 	for key, value := range averagePrice {
 		current := sgx.get(key)
 		diff, percentage, profit := getProfit(current, value.Price, value.Volume)
-		
-		s := stockInfo {
-			Code: key,
-			CurrentPrice: current,
-			Average: value.Price,
-			Diff: diff,
+
+		s := stockInfo{
+			Code:           key,
+			CurrentPrice:   current,
+			Average:        value.Price,
+			Diff:           diff,
 			DiffPercentage: percentage,
-			Volume: value.Volume,
-			Profit: profit,
+			Volume:         value.Volume,
+			Profit:         profit,
 		}
 		data = append(data, s)
 
@@ -105,54 +105,54 @@ func (fs *customFirestore) getStatistics(sgx *customSgx, formatter func(stockInf
 	}
 
 	totalDiff, totalPercentage, _ := getProfit(totalPortfolio, totalInvested, 0)
-	
+
 	return fmt.Sprintf(
-		"```\n%v```\nCurrent portfolio: %.3f\nTotal invested: %.3f\nCapital gains: %.3f (%.3f%%)", 
+		"```\n%v```\nCurrent portfolio: %.3f\nTotal invested: %.3f\nCapital gains: %.3f (%.3f%%)",
 		formatter(data), totalPortfolio, totalInvested, totalDiff, totalPercentage,
 	)
 }
 
 func getProfit(current, average float64, volume int) (float64, float64, float64) {
 	diff := (current - average)
-	return round(diff), round(diff/average*100), round(diff * float64(volume))
+	return round(diff), round(diff / average * 100), round(diff * float64(volume))
 }
 
 func round(val float64) float64 {
 	precisionFactor := 1000.0
-	return math.Round(val * precisionFactor)/precisionFactor
+	return math.Round(val*precisionFactor) / precisionFactor
 }
 
 func formatTable(stockInfos []stockInfo) string {
 	var formatted [][]string
 	for _, i := range stockInfos {
-		strings := []string { 
-			i.Code, 
-			fmt.Sprintf("%.3f", i.CurrentPrice), 
-			fmt.Sprintf("%.3f", i.Average), 
-			fmt.Sprintf("%.3f", i.Diff), 
-			fmt.Sprintf("%.3f", i.DiffPercentage), 
-			fmt.Sprintf("%v", i.Volume), 
+		strings := []string{
+			i.Code,
+			fmt.Sprintf("%.3f", i.CurrentPrice),
+			fmt.Sprintf("%.3f", i.Average),
+			fmt.Sprintf("%.3f", i.Diff),
+			fmt.Sprintf("%.3f", i.DiffPercentage),
+			fmt.Sprintf("%v", i.Volume),
 			fmt.Sprintf("%.3f", i.Profit),
 		}
 		formatted = append(formatted, strings)
-	 }
+	}
 
-	 tableString := &strings.Builder{}
-	 table := tablewriter.NewWriter(tableString)
-	 table.SetHeader([]string { "Code", "Now", "Avg", "Diff", "%", "Vol", "Total" })
-	 table.SetBorders(tablewriter.Border {Left: true, Top: false, Right: true, Bottom: false})
-	 table.SetCenterSeparator("|")
-	 table.AppendBulk(formatted)
-	 table.Render()
-	 return tableString.String()
+	tableString := &strings.Builder{}
+	table := tablewriter.NewWriter(tableString)
+	table.SetHeader([]string{"Code", "Now", "Avg", "Diff", "%", "Vol", "Total"})
+	table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
+	table.SetCenterSeparator("|")
+	table.AppendBulk(formatted)
+	table.Render()
+	return tableString.String()
 }
 
 func formatDetailedTable(stockInfos []stockInfo) string {
 	var formatted [][]string
 	for _, i := range stockInfos {
 		formatted = append(formatted, []string{i.Code, "Vol", "1", fmt.Sprintf("%v", i.Volume)})
-		formatted = append(formatted, []string{i.Code, "Now", fmt.Sprintf("%.3f", i.CurrentPrice), fmt.Sprintf("%.3f", i.CurrentPrice * float64(i.Volume))})
-		formatted = append(formatted, []string{i.Code, "Avg", fmt.Sprintf("%.3f", i.Average), fmt.Sprintf("%.3f", i.Average * float64(i.Volume))})
+		formatted = append(formatted, []string{i.Code, "Now", fmt.Sprintf("%.3f", i.CurrentPrice), fmt.Sprintf("%.3f", i.CurrentPrice*float64(i.Volume))})
+		formatted = append(formatted, []string{i.Code, "Avg", fmt.Sprintf("%.3f", i.Average), fmt.Sprintf("%.3f", i.Average*float64(i.Volume))})
 		formatted = append(formatted, []string{i.Code, "Dif", fmt.Sprintf("%.3f", i.Diff), fmt.Sprintf("%.3f", i.Profit)})
 		formatted = append(formatted, []string{i.Code, "%", "", fmt.Sprintf("%.3f", i.DiffPercentage)})
 	}
@@ -179,32 +179,32 @@ func (fs *customFirestore) addHoldings(arg string) string {
 	date, dateErr := time.Parse(dateInputFormat, params[3])
 	in := params[4]
 
-	if priceErr != nil || volumeErr != nil  || dateErr != nil {
+	if priceErr != nil || volumeErr != nil || dateErr != nil {
 		return "Something went wrong while parsing the arguments... Please enter using the correct format."
 	}
 
 	id := params[3] + "-" + code
 
-	s := firestore.Stock {
-		Code: code,
-		Price: price,
-		Volume: volume,
-		Date: date,
+	s := firestore.Stock{
+		Code:     code,
+		Price:    price,
+		Volume:   volume,
+		Date:     date,
 		StoredIn: in,
 	}
-	
+
 	fs.add(id, s)
 	return "Successfully added holdings!"
 }
 
 type stockInfo struct {
-	Code string
-	CurrentPrice float64
-	Average float64
-	Diff float64
+	Code           string
+	CurrentPrice   float64
+	Average        float64
+	Diff           float64
 	DiffPercentage float64
-	Volume int
-	Profit float64
+	Volume         int
+	Profit         float64
 }
 
 type readFunction func() map[string]firestore.Stock
@@ -212,13 +212,13 @@ type addFunction func(id string, s firestore.Stock)
 
 type customFirestore struct {
 	read readFunction
-    add addFunction
+	add  addFunction
 }
 
 func newCustomFirestore() *customFirestore {
-	return &customFirestore {
+	return &customFirestore{
 		read: firestore.GetHoldings,
-		add: firestore.AddHoldings,
+		add:  firestore.AddHoldings,
 	}
 }
 
@@ -229,5 +229,5 @@ type customSgx struct {
 }
 
 func newCustomSgx() *customSgx {
-	return &customSgx { get: sgx.GetCurrentPrice }
+	return &customSgx{get: sgx.GetCurrentPrice}
 }

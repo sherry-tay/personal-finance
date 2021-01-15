@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 	"time"
-	
+
 	"cloud.google.com/go/firestore"
 	firebase "firebase.google.com/go"
 	"google.golang.org/api/option"
@@ -13,14 +13,14 @@ import (
 
 const (
 	serviceAccountFilePath = "internal/firestore/personal-finance-admin.json"
-	stocksCollectionName = "stocks"
+	stocksCollectionName   = "stocks"
 )
 
 func getFirebaseClient() (*firestore.Client, context.Context) {
 	ctx := context.Background()
 	sa := option.WithCredentialsFile(serviceAccountFilePath)
 	app, err := firebase.NewApp(ctx, nil, sa)
-	if err != nil { 
+	if err != nil {
 		log.Fatalln(err)
 	}
 
@@ -71,12 +71,12 @@ func getAveragePrice(list []Stock) map[string]Stock {
 		sumProduct := 0.0
 		volume := 0
 		for _, stock := range stocks {
-			 sumProduct += stock.Price * float64(stock.Volume)
-			 volume += stock.Volume
+			sumProduct += stock.Price * float64(stock.Volume)
+			volume += stock.Volume
 		}
-		averaged[code] = Stock {
-			Code: code,
-			Price: sumProduct / float64(volume),
+		averaged[code] = Stock{
+			Code:   code,
+			Price:  sumProduct / float64(volume),
 			Volume: volume,
 		}
 	}
@@ -96,9 +96,9 @@ func AddHoldings(id string, stock Stock) {
 
 // Stock as recorded in Firestore
 type Stock struct {
-	Code    	string  	`firestore:"code"`
-	Price 		float64 	`firestore:"price"`
-	Volume 		int 		`firestore:"volume"`
-	Date		time.Time	`firestore:"date"`
-	StoredIn	string		`firestore:"in"`
+	Code     string    `firestore:"code"`
+	Price    float64   `firestore:"price"`
+	Volume   int       `firestore:"volume"`
+	Date     time.Time `firestore:"date"`
+	StoredIn string    `firestore:"in"`
 }
