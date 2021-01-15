@@ -8,7 +8,7 @@ import (
 	"os"
 )
 
-const categoriesJSONFilePath = "../data/category.json"
+const categoriesJSONFilePath = "data/category.json"
 
 // GetCurrentPrice gets the current price of the stock from SGX
 func GetCurrentPrice(code string) float64 {

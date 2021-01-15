@@ -14,8 +14,7 @@
 1. Run the following command:
 
 ```
-cd cmd
-go build; .\cmd.exe
+go build; .\personal-finance.exe
 ```
 
 ### To run a specific test
@@ -52,14 +51,12 @@ Note: `pip3.9 install` only needs to be run if Firebase SDK has not yet been ins
 1. Run the following command:
 
 ```
-cd cmd
-go build && ./cmd
+go build && ./personal-finance
 ```
 
 Or
 
 ```
-cd cmd
 go run main.go
 ```
 

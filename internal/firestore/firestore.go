@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	serviceAccountFilePath = "../internal/firestore/personal-finance-admin.json"
+	serviceAccountFilePath = "internal/firestore/personal-finance-admin.json"
 	stocksCollectionName = "stocks"
 )
 

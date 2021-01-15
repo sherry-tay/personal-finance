@@ -5,13 +5,11 @@ ENV TELEGRAM_WEBHOOK_URL="TELEGRAM_WEBHOOK_URL"
 ENV AUTHORIZED_USER="AUTHORIZED_USER"
 
 WORKDIR /go/src/app
-COPY cmd ./cmd
 COPY data ./data
 COPY internal ./internal
-COPY go.* ./
+COPY main.go go.* ./
 
-WORKDIR /go/src/app/cmd
 RUN go build
 
 EXPOSE 80
-CMD ["/go/src/app/cmd/cmd"]
+CMD ["/go/src/app/personal-finance"]
