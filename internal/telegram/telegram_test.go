@@ -50,7 +50,7 @@ func TestGetStatistics(t *testing.T) {
 	tests := []struct {
 		firestoreInput map[string]firestore.Stock
 		sgxInput map[string]float64
-		expected string
+		expected, expectedDetailed string
 	}{
 		{
 			firestoreInput: map[string]firestore.Stock {
@@ -75,6 +75,36 @@ func TestGetStatistics(t *testing.T) {
 |------|-------|-------|--------|---------|-----|----------|
 | ABC  | 3.180 | 1.234 |  1.946 | 157.699 | 100 |  194.600 |
 | DEF  | 2.500 | 5.670 | -3.170 | -55.908 |  87 | -275.790 |
+` + "```" + 
+`
+Current portfolio: 535.500
+Total invested: 616.690
+Capital gains: -81.190 (-13.165%)`,
+			expectedDetailed: "```" + 
+`
++-----+-----+--------+----------+
+|     |     |  PER   |  TOTAL   |
++-----+-----+--------+----------+
+| ABC | Vol |      1 |      100 |
++     +-----+--------+----------+
+|     | Now |  3.180 |  318.000 |
++     +-----+--------+----------+
+|     | Avg |  1.234 |  123.400 |
++     +-----+--------+----------+
+|     | Dif |  1.946 |  194.600 |
++     +-----+--------+----------+
+|     | %   |        |  157.699 |
++-----+-----+--------+----------+
+| DEF | Vol |      1 |       87 |
++     +-----+--------+----------+
+|     | Now |  2.500 |  217.500 |
++     +-----+--------+----------+
+|     | Avg |  5.670 |  493.290 |
++     +-----+--------+----------+
+|     | Dif | -3.170 | -275.790 |
++     +-----+--------+----------+
+|     | %   |        |  -55.908 |
++-----+-----+--------+----------+
 ` + "```" + 
 `
 Current portfolio: 535.500
@@ -116,6 +146,46 @@ Capital gains: -81.190 (-13.165%)`,
 Current portfolio: 122040.180
 Total invested: 79000.500
 Capital gains: 43039.680 (54.480%)`,
+			expectedDetailed: "```" + 
+`
++------+-----+---------+-----------+
+|      |     |   PER   |   TOTAL   |
++------+-----+---------+-----------+
+| A00  | Vol |       1 |      1000 |
++      +-----+---------+-----------+
+|      | Now |  78.000 | 78000.000 |
++      +-----+---------+-----------+
+|      | Avg |  42.000 | 42000.000 |
++      +-----+---------+-----------+
+|      | Dif |  36.000 | 36000.000 |
++      +-----+---------+-----------+
+|      | %   |         |    85.714 |
++------+-----+---------+-----------+
+| ZYX  | Vol |       1 |       200 |
++      +-----+---------+-----------+
+|      | Now | 220.200 | 44040.000 |
++      +-----+---------+-----------+
+|      | Avg | 185.000 | 37000.000 |
++      +-----+---------+-----------+
+|      | Dif |  35.200 |  7040.000 |
++      +-----+---------+-----------+
+|      | %   |         |    19.027 |
++------+-----+---------+-----------+
+| JKLM | Vol |       1 |         1 |
++      +-----+---------+-----------+
+|      | Now |   0.180 |     0.180 |
++      +-----+---------+-----------+
+|      | Avg |   0.500 |     0.500 |
++      +-----+---------+-----------+
+|      | Dif |  -0.320 |    -0.320 |
++      +-----+---------+-----------+
+|      | %   |         |   -64.000 |
++------+-----+---------+-----------+
+` + "```" + 
+`
+Current portfolio: 122040.180
+Total invested: 79000.500
+Capital gains: 43039.680 (54.480%)`,
 		},
 	}
 
@@ -128,8 +198,11 @@ Capital gains: 43039.680 (54.480%)`,
 			get: func(code string) float64 { return test.sgxInput[code] },
 		}
 		t.Run("Test getStatistics", func(t *testing.T) {
-			if actual := fs.getStatistics(sgx); actual != test.expected {
-				t.Errorf("getStatistics() = %v, expected  %v", actual, test.expected)
+			if actual := fs.getStatistics(sgx, formatTable); actual != test.expected {
+				t.Errorf("getStatistics(formatTable) = %v, expected  %v", actual, test.expected)
+			}
+			if actual := fs.getStatistics(sgx, formatDetailedTable); actual != test.expectedDetailed {
+				t.Errorf("getStatistics(formatDetailedTable) = %v, expected  %v", actual, test.expectedDetailed)
 			}
 		})
 	}

@@ -60,11 +60,12 @@ func Initialize() {
 			switch update.Message.Command() {
 			case "portfolio":
 				msg.ParseMode = "Markdown"
-				msg.Text = fs.getStatistics(newCustomSgx())
+				msg.Text = fs.getStatistics(newCustomSgx(), formatTable)
 			case "add":
 				msg.Text = fs.addHoldings(update.Message.CommandArguments())
-			case "status":
-				msg.Text = "I'm ok."
+			case "detailed":
+				msg.ParseMode = "Markdown"
+				msg.Text = fs.getStatistics(newCustomSgx(), formatDetailedTable)
 			case "withArgument":
 				msg.Text = "You supplied the following argument: " + update.Message.CommandArguments()
 			case "html":
@@ -78,7 +79,7 @@ func Initialize() {
 	}
 }
 
-func (fs *customFirestore) getStatistics(sgx *customSgx) string {
+func (fs *customFirestore) getStatistics(sgx *customSgx, formatter func(stockInfos []stockInfo) string) string {
 	var data []stockInfo
 	totalPortfolio, totalInvested := 0.0, 0.0
 
@@ -107,7 +108,7 @@ func (fs *customFirestore) getStatistics(sgx *customSgx) string {
 	
 	return fmt.Sprintf(
 		"```\n%v```\nCurrent portfolio: %.3f\nTotal invested: %.3f\nCapital gains: %.3f (%.3f%%)", 
-		formatTable(data), totalPortfolio, totalInvested, totalDiff, totalPercentage,
+		formatter(data), totalPortfolio, totalInvested, totalDiff, totalPercentage,
 	)
 }
 
@@ -123,7 +124,7 @@ func round(val float64) float64 {
 
 func formatTable(stockInfos []stockInfo) string {
 	var formatted [][]string
-	 for _, i := range stockInfos {
+	for _, i := range stockInfos {
 		strings := []string { 
 			i.Code, 
 			fmt.Sprintf("%.3f", i.CurrentPrice), 
@@ -144,6 +145,26 @@ func formatTable(stockInfos []stockInfo) string {
 	 table.AppendBulk(formatted)
 	 table.Render()
 	 return tableString.String()
+}
+
+func formatDetailedTable(stockInfos []stockInfo) string {
+	var formatted [][]string
+	for _, i := range stockInfos {
+		formatted = append(formatted, []string{i.Code, "Vol", "1", fmt.Sprintf("%v", i.Volume)})
+		formatted = append(formatted, []string{i.Code, "Now", fmt.Sprintf("%.3f", i.CurrentPrice), fmt.Sprintf("%.3f", i.CurrentPrice * float64(i.Volume))})
+		formatted = append(formatted, []string{i.Code, "Avg", fmt.Sprintf("%.3f", i.Average), fmt.Sprintf("%.3f", i.Average * float64(i.Volume))})
+		formatted = append(formatted, []string{i.Code, "Dif", fmt.Sprintf("%.3f", i.Diff), fmt.Sprintf("%.3f", i.Profit)})
+		formatted = append(formatted, []string{i.Code, "%", "", fmt.Sprintf("%.3f", i.DiffPercentage)})
+	}
+
+	tableString := &strings.Builder{}
+	table := tablewriter.NewWriter(tableString)
+	table.SetHeader([]string{"", "", "Per", "Total"})
+	table.SetAutoMergeCells(true)
+	table.SetRowLine(true)
+	table.AppendBulk(formatted)
+	table.Render()
+	return tableString.String()
 }
 
 func (fs *customFirestore) addHoldings(arg string) string {
