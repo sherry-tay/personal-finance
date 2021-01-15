@@ -1,7 +1,7 @@
 package main
 
 import (
-	"personal.finance/internal/telegram"
+	"github.com/sherry-tay/personal-finance/internal/telegram"
 )
 
 func main() {

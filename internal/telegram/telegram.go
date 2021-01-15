@@ -2,18 +2,18 @@ package telegram
 
 import (
 	"fmt"
-	"net/http"
 	"log"
 	"math"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
 	"time"
 
-	"personal.finance/internal/firestore"
-	"personal.finance/internal/sgx"
+	"github.com/sherry-tay/personal-finance/internal/firestore"
+	"github.com/sherry-tay/personal-finance/internal/sgx"
 
-	"github.com/go-telegram-bot-api/telegram-bot-api"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/olekukonko/tablewriter"
 )
 

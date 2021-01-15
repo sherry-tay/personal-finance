@@ -1,4 +1,4 @@
-module personal.finance
+module github.com/sherry-tay/personal-finance
 
 go 1.15
 

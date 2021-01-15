@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"personal.finance/internal/firestore"
+	"github.com/sherry-tay/personal-finance/internal/firestore"
 )
 
 func TestGetProfit(t *testing.T) {
