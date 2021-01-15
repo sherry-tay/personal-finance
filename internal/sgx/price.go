@@ -8,10 +8,11 @@ import (
 	"os"
 )
 
-var categoriesJsonFilePath = "../data/category.json"
+const categoriesJSONFilePath = "../data/category.json"
 
+// GetCurrentPrice gets the current price of the stock from SGX
 func GetCurrentPrice(code string) float64 {
-	jsonFile, err := os.Open(categoriesJsonFilePath)
+	jsonFile, err := os.Open(categoriesJSONFilePath)
 	if err != nil {
 		log.Fatalf("Failed to open category json file: %v", err)
 	}

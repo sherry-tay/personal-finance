@@ -11,8 +11,10 @@ import (
 	"google.golang.org/api/option"
 )
 
-var serviceAccountFilePath = "../internal/firestore/personal-finance-admin.json"
-var stocksCollectionName = "stocks"
+const (
+	serviceAccountFilePath = "../internal/firestore/personal-finance-admin.json"
+	stocksCollectionName = "stocks"
+)
 
 func getFirebaseClient() (*firestore.Client, context.Context) {
 	ctx := context.Background()
