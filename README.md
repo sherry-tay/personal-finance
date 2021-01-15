@@ -7,7 +7,7 @@
 
 ## Using Windows Powershell
 
-### To run:
+### To run
 
 1. Add `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_URL` and `AUTHORIZED_USER` (Telegram username) as environment variables
 
@@ -18,19 +18,19 @@ cd cmd
 go build; .\cmd.exe
 ```
 
-### To run a specific test e.g.:
+### To run a specific test
 
 ```
 go test .\internal\firestore\
 ```
 
-### To update SGX securities category info:
+### To update SGX securities category info
 
 ```
 python .\scripts\fetch_code.py
 ```
 
-### To update stock holdings in FireStore:
+### To update stock holdings in FireStore
 
 1. Add a JSON file in `data` folder following the format of `stocks.json` in the `templates` directory
 
@@ -45,7 +45,7 @@ Note: `pip3.9 install` only needs to be run if Firebase SDK has not yet been ins
 
 ## Using MacOS
 
-### To run:
+### To run
 
 1. Add `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_URL` and `AUTHORIZED_USER` (Telegram username) as environment variables
 
@@ -63,13 +63,19 @@ cd cmd
 go run main.go
 ```
 
-### To run a specific test e.g.:
+### To run a specific test
 
 ```
 go test ./internal/firestore/
 ```
 
-### To update SGX securities category info:
+### To run all tests including subdirectories
+
+```
+go test ./...
+```
+
+### To update SGX securities category info
 
 ```
 chmod +x scripts/fetch_code.py
@@ -78,7 +84,7 @@ scripts/fetch_code.py
 
 Note: `chmod +x scripts/fetch_code.py` only needs to be run if permission is denied
 
-### To update stock holdings in FireStore:
+### To update stock holdings in FireStore
 
 1. Add a JSON file in `data` folder following the format of `stocks.json` in the `templates` directory
 
@@ -94,7 +100,8 @@ Note: `chmod +x scripts/update_firestore.py` and `pip3 install` only needs to be
 
 ## Using Docker
 
-### To run:
+### To run
+
 1. Update `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_URL` and `AUTHORIZED_USER` (Telegram username) in `Dockerfile`
 
 1. Run the following command:
