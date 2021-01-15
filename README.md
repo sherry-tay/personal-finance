@@ -1,3 +1,5 @@
+[![CircleCI](https://circleci.com/gh/sherry-tay/personal-finance.svg?style=svg&circle-token=24d608af19fa19829456e62b759188a6a6273112)](https://app.circleci.com/pipelines/github/sherry-tay/personal-finance)
+
 # personal-finance
 
 1. [Using Windows Powershell](#using-windows-powershell)
