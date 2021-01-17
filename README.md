@@ -107,21 +107,21 @@ Note: `chmod +x scripts/update_firestore.py` and `pip3 install` only needs to be
 
 ```
 docker build -t personal-finance .
-docker run -it --rm -p 80:80 --name personal-finance personal-finance
+docker run -it --rm -p 8080:8080 --name personal-finance personal-finance
 ```
 
 ## Create webhook locally using ngrok
 
-1. Run the below to secure a public URL for port 80 web server
+1. Run the below to secure a public URL for port 8080 web server
 
 ```
-ngrok http 80
+ngrok http 8080
 ```
 
 or for Windows Docker with IP `192.168.99.100`:
 
 ```
-ngrok http 192.168.99.100:80
+ngrok http 192.168.99.100:8080
 ```
 
 Note: For a web interface for debugging incoming connections, use `http://127.0.0.1:4040`

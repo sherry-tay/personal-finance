@@ -33,12 +33,14 @@ func Initialize() {
 
 	log.Printf("Authorized on account %s", bot.Self.UserName)
 
-	if _, err = bot.SetWebhook(tgbotapi.NewWebhook(webhookURL + "/" + bot.Token)); err != nil {
-		log.Fatalf("Failed to set webhook for Telegram bot: %v", err)
+	if (webhookURL != "") {
+		if _, err = bot.SetWebhook(tgbotapi.NewWebhook(webhookURL + "/" + bot.Token)); err != nil {
+			log.Fatalf("Failed to set webhook for Telegram bot: %v", err)
+		}
 	}
 
 	updates := bot.ListenForWebhook("/" + bot.Token)
-	go http.ListenAndServe("0.0.0.0:80", nil)
+	go http.ListenAndServe("0.0.0.0:8080", nil)
 
 	fs := newCustomFirestore()
 

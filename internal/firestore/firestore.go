@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"cloud.google.com/go/firestore"
@@ -12,14 +13,24 @@ import (
 )
 
 const (
-	serviceAccountFilePath = "internal/firestore/personal-finance-admin.json"
+	serviceAccountFilePath = "personal-finance-admin.json"
 	stocksCollectionName   = "stocks"
 )
 
 func getFirebaseClient() (*firestore.Client, context.Context) {
 	ctx := context.Background()
-	sa := option.WithCredentialsFile(serviceAccountFilePath)
-	app, err := firebase.NewApp(ctx, nil, sa)
+
+	var app *firebase.App
+	var err error
+
+	if os.Getenv("IS_GCP") != "" {
+		conf := &firebase.Config{ProjectID: os.Getenv("PROJECT_ID")}
+		app, err = firebase.NewApp(ctx, conf)
+	} else {
+		sa := option.WithCredentialsFile(serviceAccountFilePath)
+		app, err = firebase.NewApp(ctx, nil, sa)
+	}
+	
 	if err != nil {
 		log.Fatalln(err)
 	}
