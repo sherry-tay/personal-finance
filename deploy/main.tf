@@ -23,6 +23,12 @@ resource "google_cloud_run_service" "personal_finance" {
           value = var.project
         }
       }
+      container_concurrency = 1
+    }
+    metadata {
+      annotations = {
+        "autoscaling.knative.dev/maxScale" = "1"
+      }
     }
   }
 
