@@ -6,6 +6,7 @@ import (
 	"math"
 	"net/http"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -87,7 +88,14 @@ func (fs *customFirestore) getStatistics(sgx *customSgx, formatter func(stockInf
 
 	averagePrice := fs.read()
 
-	for key, value := range averagePrice {
+	sortedCodes := make([]string, 0, len(averagePrice))
+	for key := range averagePrice {
+		sortedCodes = append(sortedCodes, key)
+	}
+	sort.Strings(sortedCodes)
+
+	for _, key := range sortedCodes {
+		value := averagePrice[key]
 		current := sgx.get(key)
 		diff, percentage, profit := getProfit(current, value.Price, value.Volume)
 
