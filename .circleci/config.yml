@@ -63,7 +63,7 @@ workflows:
             - build_and_test
           filters:
             branches:
-              only: circleci
+              only: master
       - gcp-gcr/build-and-push-image:
           image: personal-finance
           registry-url: us.gcr.io
