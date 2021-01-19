@@ -23,6 +23,7 @@ const dateInputFormat = "20060102" // 2006-Jan-02
 var telegramBotToken = os.Getenv("TELEGRAM_BOT_TOKEN")
 var webhookURL = os.Getenv("TELEGRAM_WEBHOOK_URL")
 var authorizedUser = os.Getenv("AUTHORIZED_USER")
+var port = os.Getenv("PORT")
 
 // Initialize the Telegram bot
 func Initialize() {
@@ -41,7 +42,7 @@ func Initialize() {
 	}
 
 	updates := bot.ListenForWebhook("/" + bot.Token)
-	go http.ListenAndServe("0.0.0.0:8080", nil)
+	go http.ListenAndServe("0.0.0.0:" + port, nil)
 
 	fs := newCustomFirestore()
 
