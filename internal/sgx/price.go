@@ -22,8 +22,7 @@ func GetCurrentPrice(code string) (float64, error) {
 	var categories map[string]string
 	json.Unmarshal([]byte(byteValue), &categories)
 	if _, ok := categories[code]; !ok {
-		fmt.Printf("Failed to find category info for code %v: %v", code, err)
-		return 0.0, err
+		return 0.0, fmt.Errorf("Failed to find category info for code: %v", code)
 	}
 
 	resp, err := http.Get("https://api.sgx.com/securities/v1.1/" + categories[code] + "/code/" + code)
@@ -43,5 +42,9 @@ func GetCurrentPrice(code string) (float64, error) {
 		return 0.0, err
 	}
 	defer resp.Body.Close()
+
+	if len(message.Data.Prices) < 1 {
+		return 0.0, fmt.Errorf("No price value found for %v", code)
+	}
 	return message.Data.Prices[0].LastTraded, nil
 }
