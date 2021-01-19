@@ -3,7 +3,6 @@ package firestore
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"time"
 
@@ -17,7 +16,7 @@ const (
 	stocksCollectionName   = "stocks"
 )
 
-func getFirebaseClient() (*firestore.Client, context.Context) {
+func getFirebaseClient() (*firestore.Client, context.Context, error) {
 	ctx := context.Background()
 
 	var app *firebase.App
@@ -32,41 +31,50 @@ func getFirebaseClient() (*firestore.Client, context.Context) {
 	}
 	
 	if err != nil {
-		log.Fatalln(err)
+		fmt.Println(err)
+		return nil, nil, err
 	}
 
 	client, err := app.Firestore(ctx)
 	if err != nil {
-		log.Fatalln(err)
+		fmt.Println(err)
+		return nil, nil, err
 	}
 
-	return client, ctx
+	fmt.Println("Successfully obtained Firestore client")
+	return client, ctx, nil
 }
 
 // GetHoldings stored in Firestore
-func GetHoldings() map[string]Stock {
-	client, ctx := getFirebaseClient()
+func GetHoldings() (map[string]Stock, error) {
+	client, ctx, err := getFirebaseClient()
+	if err != nil {
+		return nil, err
+	}
 
 	iter := client.Collection(stocksCollectionName).Documents(ctx)
 	docs, err := iter.GetAll()
 	if err != nil {
-		log.Fatalf("Failed to get documents: %v", err)
+		fmt.Printf("Failed to get documents: %v", err)
+		return nil, err
 	}
+	fmt.Println("Successfully obtained stock documents")
 
 	var stocksList []Stock
 	for _, doc := range docs {
 		var s Stock
 		if err := doc.DataTo(&s); err != nil {
-			log.Fatalf("Failed to transform: %v", err)
+			fmt.Printf("Failed to transform: %v", err)
+			return nil, err
 		}
 		stocksList = append(stocksList, s)
 	}
 
-	fmt.Println(stocksList)
+	fmt.Printf("Stocks in holdings: %v", stocksList)
 
 	defer client.Close()
 
-	return getAveragePrice(stocksList)
+	return getAveragePrice(stocksList), nil
 }
 
 func getAveragePrice(list []Stock) map[string]Stock {
@@ -92,16 +100,24 @@ func getAveragePrice(list []Stock) map[string]Stock {
 		}
 	}
 
+	fmt.Printf("Stocks in holdings (averaged): %v", averaged)
+
 	return averaged
 }
 
 // AddHoldings to Firestore
-func AddHoldings(id string, stock Stock) {
-	client, ctx := getFirebaseClient()
-
-	_, err := client.Collection(stocksCollectionName).Doc(id).Set(ctx, stock)
+func AddHoldings(id string, stock Stock) error {
+	client, ctx, err := getFirebaseClient()
 	if err != nil {
-		log.Fatalf("Failed to set documents: %v", err)
+		return err
+	}
+
+	if writeResult, err := client.Collection(stocksCollectionName).Doc(id).Set(ctx, stock); err != nil {
+		fmt.Printf("Failed to set documents: %v", err)
+		return err
+	} else {
+		fmt.Printf("Successfully added holdings at %v", writeResult)
+		return nil
 	}
 }
 

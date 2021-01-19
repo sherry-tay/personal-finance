@@ -208,11 +208,14 @@ Capital gains: 43039.680 (54.441%)`,
 
 	for _, test := range tests {
 		fs := &customFirestore{
-			read: func() map[string]firestore.Stock { return test.firestoreInput },
-			add:  func(id string, s firestore.Stock) { t.Error("Should not call add") },
+			read: func() (map[string]firestore.Stock, error) { return test.firestoreInput, nil },
+			add:  func(id string, s firestore.Stock) error { 
+				t.Error("Should not call add") 
+				return nil 
+			},
 		}
 		sgx := &customSgx{
-			get: func(code string) float64 { return test.sgxInput[code] },
+			get: func(code string) (float64, error) { return test.sgxInput[code], nil },
 		}
 		t.Run("Test getStatistics", func(t *testing.T) {
 			if actual := fs.getStatistics(sgx, formatTable); actual != test.expected {
@@ -325,13 +328,14 @@ func TestAddHoldings(t *testing.T) {
 		var argID string
 		var argStock firestore.Stock
 		fs := &customFirestore{
-			read: func() map[string]firestore.Stock {
+			read: func() (map[string]firestore.Stock, error) {
 				t.Error("Should not call read")
-				return map[string]firestore.Stock{}
+				return map[string]firestore.Stock{}, nil
 			},
-			add: func(id string, s firestore.Stock) {
+			add: func(id string, s firestore.Stock) error {
 				argID = id
 				argStock = s
+				return nil
 			},
 		}
 		t.Run("Test addHoldings - "+test.testName, func(t *testing.T) {

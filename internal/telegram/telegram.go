@@ -86,7 +86,10 @@ func (fs *customFirestore) getStatistics(sgx *customSgx, formatter func(stockInf
 	var data []stockInfo
 	totalPortfolio, totalInvested := 0.0, 0.0
 
-	averagePrice := fs.read()
+	averagePrice, err := fs.read()
+	if err != nil {
+		return "Something went wrong while retrieving your holdings"
+	}
 
 	sortedCodes := make([]string, 0, len(averagePrice))
 	for key := range averagePrice {
@@ -96,7 +99,10 @@ func (fs *customFirestore) getStatistics(sgx *customSgx, formatter func(stockInf
 
 	for _, key := range sortedCodes {
 		value := averagePrice[key]
-		current := sgx.get(key)
+		current, err := sgx.get(key)
+		if err != nil {
+			break
+		}
 		diff, percentage, profit := getProfit(current, value.Price, value.Volume)
 
 		s := stockInfo{
@@ -203,7 +209,9 @@ func (fs *customFirestore) addHoldings(arg string) string {
 		StoredIn: in,
 	}
 
-	fs.add(id, s)
+	if err := fs.add(id, s); err != nil {
+		return "Something went wrong while adding your holdings"
+	}
 	return "Successfully added holdings!"
 }
 
@@ -217,8 +225,8 @@ type stockInfo struct {
 	Profit         float64
 }
 
-type readFunction func() map[string]firestore.Stock
-type addFunction func(id string, s firestore.Stock)
+type readFunction func() (map[string]firestore.Stock, error)
+type addFunction func(id string, s firestore.Stock) error
 
 type customFirestore struct {
 	read readFunction
@@ -232,7 +240,7 @@ func newCustomFirestore() *customFirestore {
 	}
 }
 
-type getCurrentPrice func(code string) float64
+type getCurrentPrice func(code string) (float64, error)
 
 type customSgx struct {
 	get getCurrentPrice
