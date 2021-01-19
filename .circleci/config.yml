@@ -48,7 +48,7 @@ jobs:
           cd deploy && terraform apply -auto-approve
           -var "key_file=$GCLOUD_SERVICE_KEY"
           -var "project=$GOOGLE_PROJECT_ID"
-          -var "image=us.gcr.io/$GOOGLE_PROJECT_ID/personal-finance:latest"
+          -var "image=us.gcr.io/$GOOGLE_PROJECT_ID/personal-finance:$CIRCLE_WORKFLOW_ID"
           -var "telegram_bot_token=$TELEGRAM_BOT_TOKEN"
           -var "telegram_bot_authorised_username=$AUTHORIZED_USER"
 
@@ -67,6 +67,7 @@ workflows:
       - gcp-gcr/build-and-push-image:
           image: personal-finance
           registry-url: us.gcr.io
+          tag: $CIRCLE_WORKFLOW_ID
           requires:
             - approve_docker_push_deploy
       - deploy:
