@@ -1,11 +1,47 @@
 package telegram
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
 	"github.com/sherry-tay/personal-finance/internal/firestore"
 )
+
+func TestGetPriceResponse(t *testing.T) {
+	tests := []struct {
+		sgx, yahoo *priceSource
+		expected   string
+	}{
+		{
+			sgx:      &priceSource{get: func(code string) (float64, error) { return 82, nil }},
+			yahoo:    &priceSource{get: func(code string) (float64, error) { return 24.5, nil }},
+			expected: "82.000",
+		},
+		{
+			sgx:      &priceSource{get: func(code string) (float64, error) { return 3.4, nil }},
+			yahoo:    &priceSource{get: func(code string) (float64, error) { return 0.0, fmt.Errorf("Yahoo error") }},
+			expected: "3.400",
+		},
+		{
+			sgx:      &priceSource{get: func(code string) (float64, error) { return 0.0, fmt.Errorf("Sgx error") }},
+			yahoo:    &priceSource{get: func(code string) (float64, error) { return 871.24122, nil }},
+			expected: "871.241",
+		},
+		{
+			sgx:      &priceSource{get: func(code string) (float64, error) { return 0.0, fmt.Errorf("Sgx error") }},
+			yahoo:    &priceSource{get: func(code string) (float64, error) { return 0.0, fmt.Errorf("Yahoo error") }},
+			expected: "Something went wrong while fetching price of FOO",
+		},
+	}
+	for _, test := range tests {
+		t.Run("Test getPriceResponse", func(t *testing.T) {
+			if actual := getPriceResponse("FOO", test.sgx, test.yahoo); actual != test.expected {
+				t.Errorf("getPriceResponse() = %v, expected  %v", actual, test.expected)
+			}
+		})
+	}
+}
 
 func TestGetProfit(t *testing.T) {
 	type args struct {
@@ -136,7 +172,7 @@ Capital gains: -81.190 (-13.165%)`,
 			},
 			sgxInput: map[string]float64{
 				"A00":  78,
-				"123": 2.5,
+				"123":  2.5,
 				"ZYX":  220.2,
 				"JKLM": 0.18,
 			},
@@ -209,19 +245,25 @@ Capital gains: 43039.680 (54.441%)`,
 	for _, test := range tests {
 		fs := &customFirestore{
 			read: func() (map[string]firestore.Stock, error) { return test.firestoreInput, nil },
-			add:  func(id string, s firestore.Stock) error { 
-				t.Error("Should not call add") 
-				return nil 
+			add: func(id string, s firestore.Stock) error {
+				t.Error("Should not call add")
+				return nil
 			},
 		}
-		sgx := &customSgx{
+		sgx := &priceSource{
 			get: func(code string) (float64, error) { return test.sgxInput[code], nil },
 		}
+		yahoo := &priceSource{
+			get: func(code string) (float64, error) {
+				t.Error("Should call sgx price source")
+				return 0.0, nil
+			},
+		}
 		t.Run("Test getStatistics", func(t *testing.T) {
-			if actual := fs.getStatistics(sgx, formatTable); actual != test.expected {
+			if actual := fs.getStatistics(sgx, yahoo, formatTable); actual != test.expected {
 				t.Errorf("getStatistics(formatTable) = %v, expected  %v", actual, test.expected)
 			}
-			if actual := fs.getStatistics(sgx, formatDetailedTable); actual != test.expectedDetailed {
+			if actual := fs.getStatistics(sgx, yahoo, formatDetailedTable); actual != test.expectedDetailed {
 				t.Errorf("getStatistics(formatDetailedTable) = %v, expected  %v", actual, test.expectedDetailed)
 			}
 		})
@@ -263,64 +305,64 @@ func TestAddHoldings(t *testing.T) {
 			},
 		},
 		{
-			testName:      "wrong price format",
-			input:         "ABC S1.23 100 20200131 myBroker",
-			expected:      "Something went wrong while parsing the arguments... Please enter using the correct format.",
-			shouldRunAdd:  false,
+			testName:     "wrong price format",
+			input:        "ABC S1.23 100 20200131 myBroker",
+			expected:     "Something went wrong while parsing the arguments... Please enter using the correct format.",
+			shouldRunAdd: false,
 		},
 		{
-			testName:      "wrong price format",
-			input:         "ABC 1.23N 100 20200131 myBroker",
-			expected:      "Something went wrong while parsing the arguments... Please enter using the correct format.",
-			shouldRunAdd:  false,
+			testName:     "wrong price format",
+			input:        "ABC 1.23N 100 20200131 myBroker",
+			expected:     "Something went wrong while parsing the arguments... Please enter using the correct format.",
+			shouldRunAdd: false,
 		},
 		{
-			testName:      "wrong price format",
-			input:         "ABC $1.23 100 20200131 myBroker",
-			expected:      "Something went wrong while parsing the arguments... Please enter using the correct format.",
-			shouldRunAdd:  false,
+			testName:     "wrong price format",
+			input:        "ABC $1.23 100 20200131 myBroker",
+			expected:     "Something went wrong while parsing the arguments... Please enter using the correct format.",
+			shouldRunAdd: false,
 		},
 		{
-			testName:      "wrong price format",
-			input:         "ABC SGD1.23 100 20200131 myBroker",
-			expected:      "Something went wrong while parsing the arguments... Please enter using the correct format.",
-			shouldRunAdd:  false,
+			testName:     "wrong price format",
+			input:        "ABC SGD1.23 100 20200131 myBroker",
+			expected:     "Something went wrong while parsing the arguments... Please enter using the correct format.",
+			shouldRunAdd: false,
 		},
 		{
-			testName:      "wrong volume format",
-			input:         "ABC 1.23 10A0 20200131 myBroker",
-			expected:      "Something went wrong while parsing the arguments... Please enter using the correct format.",
-			shouldRunAdd:  false,
+			testName:     "wrong volume format",
+			input:        "ABC 1.23 10A0 20200131 myBroker",
+			expected:     "Something went wrong while parsing the arguments... Please enter using the correct format.",
+			shouldRunAdd: false,
 		},
 		{
-			testName:      "wrong date format",
-			input:         "ABC 1.23 100 D20200131 myBroker",
-			expected:      "Something went wrong while parsing the arguments... Please enter using the correct format.",
-			shouldRunAdd:  false,
+			testName:     "wrong date format",
+			input:        "ABC 1.23 100 D20200131 myBroker",
+			expected:     "Something went wrong while parsing the arguments... Please enter using the correct format.",
+			shouldRunAdd: false,
 		},
 		{
-			testName:      "wrong date format",
-			input:         "ABC 1.23 100 20200131D myBroker",
-			expected:      "Something went wrong while parsing the arguments... Please enter using the correct format.",
-			shouldRunAdd:  false,
+			testName:     "wrong date format",
+			input:        "ABC 1.23 100 20200131D myBroker",
+			expected:     "Something went wrong while parsing the arguments... Please enter using the correct format.",
+			shouldRunAdd: false,
 		},
 		{
-			testName:      "invalid date",
-			input:         "ABC 1.23 100 20200132 myBroker",
-			expected:      "Something went wrong while parsing the arguments... Please enter using the correct format.",
-			shouldRunAdd:  false,
+			testName:     "invalid date",
+			input:        "ABC 1.23 100 20200132 myBroker",
+			expected:     "Something went wrong while parsing the arguments... Please enter using the correct format.",
+			shouldRunAdd: false,
 		},
 		{
-			testName:      "invalid date",
-			input:         "ABC 1.23 100 20201331 myBroker",
-			expected:      "Something went wrong while parsing the arguments... Please enter using the correct format.",
-			shouldRunAdd:  false,
+			testName:     "invalid date",
+			input:        "ABC 1.23 100 20201331 myBroker",
+			expected:     "Something went wrong while parsing the arguments... Please enter using the correct format.",
+			shouldRunAdd: false,
 		},
 		{
-			testName:      "not enough arguments",
-			input:         "ABC 1.23 100 20200131",
-			expected:      "Not enough arguments supplied! Aborting...",
-			shouldRunAdd:  false,
+			testName:     "not enough arguments",
+			input:        "ABC 1.23 100 20200131",
+			expected:     "Not enough arguments supplied! Aborting...",
+			shouldRunAdd: false,
 		},
 	}
 

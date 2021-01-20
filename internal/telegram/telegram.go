@@ -13,6 +13,7 @@ import (
 
 	"github.com/sherry-tay/personal-finance/internal/firestore"
 	"github.com/sherry-tay/personal-finance/internal/sgx"
+	"github.com/sherry-tay/personal-finance/internal/yahoo"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/olekukonko/tablewriter"
@@ -35,14 +36,14 @@ func Initialize() {
 
 	log.Printf("Authorized on account %s", bot.Self.UserName)
 
-	if (webhookURL != "") {
+	if webhookURL != "" {
 		if _, err = bot.SetWebhook(tgbotapi.NewWebhook(webhookURL + "/" + bot.Token)); err != nil {
 			log.Fatalf("Failed to set webhook for Telegram bot: %v", err)
 		}
 	}
 
 	updates := bot.ListenForWebhook("/" + bot.Token)
-	go http.ListenAndServe("0.0.0.0:" + port, nil)
+	go http.ListenAndServe("0.0.0.0:"+port, nil)
 
 	fs := newCustomFirestore()
 
@@ -64,14 +65,14 @@ func Initialize() {
 			switch update.Message.Command() {
 			case "portfolio":
 				msg.ParseMode = "Markdown"
-				msg.Text = fs.getStatistics(newCustomSgx(), formatTable)
+				msg.Text = fs.getStatistics(newCustomSgx(), newCustomYahoo(), formatTable)
 			case "add":
 				msg.Text = fs.addHoldings(update.Message.CommandArguments())
 			case "detailed":
 				msg.ParseMode = "Markdown"
-				msg.Text = fs.getStatistics(newCustomSgx(), formatDetailedTable)
-			case "withArgument":
-				msg.Text = "You supplied the following argument: " + update.Message.CommandArguments()
+				msg.Text = fs.getStatistics(newCustomSgx(), newCustomYahoo(), formatDetailedTable)
+			case "price":
+				msg.Text = getPriceResponse(update.Message.CommandArguments(), newCustomSgx(), newCustomYahoo())
 			case "html":
 				msg.ParseMode = "html"
 				msg.Text = "This will be interpreted as HTML, click <a href=\"https://www.example.com\">here</a>"
@@ -83,7 +84,28 @@ func Initialize() {
 	}
 }
 
-func (fs *customFirestore) getStatistics(sgx *customSgx, formatter func(stockInfos []stockInfo) string) string {
+func getPriceResponse(ticker string, sgx, yahoo *priceSource) string {
+	if current, err := getPrice(ticker, sgx, yahoo); err == nil {
+		return fmt.Sprintf("%.3f", current)
+	}
+	return fmt.Sprintf("Something went wrong while fetching price of %v", ticker)
+}
+
+func getPrice(ticker string, sgx, yahoo *priceSource) (float64, error) {
+	fmt.Printf("Attempting to fetch price from SGX for %v", ticker)
+	if current, err := sgx.get(ticker); err == nil {
+		fmt.Printf("Obtained price from SGX for %v: %v", ticker, current)
+		return current, nil
+	}
+	fmt.Printf("Attempting to fetch price from Yahoo for %v", ticker)
+	if current, err := yahoo.get(ticker); err == nil {
+		fmt.Printf("Obtained price from Yahoo for %v: %v", ticker, current)
+		return current, nil
+	}
+	return 0.0, fmt.Errorf("Something went wrong while fetching price of %v", ticker)
+}
+
+func (fs *customFirestore) getStatistics(sgx, yahoo *priceSource, formatter func(stockInfos []stockInfo) string) string {
 	var data []stockInfo
 	totalPortfolio, totalInvested := 0.0, 0.0
 
@@ -100,7 +122,7 @@ func (fs *customFirestore) getStatistics(sgx *customSgx, formatter func(stockInf
 
 	for _, key := range sortedCodes {
 		value := averagePrice[key]
-		current, err := sgx.get(key)
+		current, err := getPrice(key, sgx, yahoo)
 		if err != nil {
 			break
 		}
@@ -243,10 +265,13 @@ func newCustomFirestore() *customFirestore {
 
 type getCurrentPrice func(code string) (float64, error)
 
-type customSgx struct {
+type priceSource struct {
 	get getCurrentPrice
 }
 
-func newCustomSgx() *customSgx {
-	return &customSgx{get: sgx.GetCurrentPrice}
+func newCustomSgx() *priceSource {
+	return &priceSource{get: sgx.GetCurrentPrice}
+}
+func newCustomYahoo() *priceSource {
+	return &priceSource{get: yahoo.GetCurrentPrice}
 }

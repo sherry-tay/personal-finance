@@ -2,8 +2,8 @@ package sgx
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 )
@@ -31,6 +31,7 @@ func GetCurrentPrice(code string) (float64, error) {
 		return 0.0, err
 	}
 	body, err := ioutil.ReadAll(resp.Body)
+	defer resp.Body.Close()
 	if err != nil {
 		fmt.Printf("Failed to read securities data response body: %v", err)
 		return 0.0, err
@@ -41,7 +42,6 @@ func GetCurrentPrice(code string) (float64, error) {
 		fmt.Printf("Failed to unmarshal securities data: %v", err)
 		return 0.0, err
 	}
-	defer resp.Body.Close()
 
 	if len(message.Data.Prices) < 1 {
 		return 0.0, fmt.Errorf("No price value found for %v", code)
