@@ -85,6 +85,9 @@ func Initialize() {
 }
 
 func getPriceResponse(ticker string, sgx, yahoo *priceSource) string {
+	if ticker == "" {
+		return "Please enter a valid SGX or Yahoo ticker"
+	}
 	if current, err := getPrice(ticker, sgx, yahoo); err == nil {
 		return fmt.Sprintf("%.3f", current)
 	}
