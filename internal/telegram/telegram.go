@@ -34,7 +34,7 @@ func Initialize() {
 	}
 	bot.Debug = true
 
-	log.Printf("Authorized on account %s", bot.Self.UserName)
+	fmt.Printf("Authorized on account %s", bot.Self.UserName)
 
 	if webhookURL != "" {
 		if _, err = bot.SetWebhook(tgbotapi.NewWebhook(webhookURL + "/" + bot.Token)); err != nil {
@@ -52,7 +52,7 @@ func Initialize() {
 			continue
 		}
 
-		log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
+		fmt.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
 
 		if update.Message.Chat.UserName != authorizedUser || update.Message.Chat.Type != "private" {
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Sorry, this is a private personal bot!")
