@@ -123,11 +123,14 @@ func (fs *customFirestore) getStatistics(sgx, yahoo *priceSource, formatter func
 	}
 	sort.Strings(sortedCodes)
 
+	var unknownCodes []string
 	for _, key := range sortedCodes {
 		value := averagePrice[key]
 		current, err := getPrice(key, sgx, yahoo)
 		if err != nil {
-			break
+			fmt.Printf("Unable to find price for %v", key)
+			unknownCodes = append(unknownCodes, key)
+			continue
 		}
 		diff, percentage, profit := getProfit(current, value.Price, value.Volume)
 
@@ -146,11 +149,15 @@ func (fs *customFirestore) getStatistics(sgx, yahoo *priceSource, formatter func
 		totalInvested += value.Price * float64(value.Volume)
 	}
 
+	var unknownCodesString string
+	if len(unknownCodes) > 0 {
+		unknownCodesString = fmt.Sprintf("List of unknown codes: %v\n\n", strings.Join(unknownCodes, ", "))
+	}
 	totalDiff, totalPercentage, _ := getProfit(totalPortfolio, totalInvested, 0)
 
 	return fmt.Sprintf(
-		"```\n%v```\nCurrent portfolio: %.3f\nTotal invested: %.3f\nCapital gains: %.3f (%.3f%%)",
-		formatter(data), totalPortfolio, totalInvested, totalDiff, totalPercentage,
+		"```\n%v```\n%vCurrent portfolio: %.3f\nTotal invested: %.3f\nCapital gains: %.3f (%.3f%%)",
+		formatter(data), unknownCodesString, totalPortfolio, totalInvested, totalDiff, totalPercentage,
 	)
 }
 

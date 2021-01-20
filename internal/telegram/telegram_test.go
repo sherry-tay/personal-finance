@@ -149,6 +149,11 @@ Capital gains: -81.190 (-13.165%)`,
 		},
 		{
 			firestoreInput: map[string]firestore.Stock{
+				"INVALID": {
+					Code:   "INVALID",
+					Price:  2000,
+					Volume: 1000,
+				},
 				"A00": {
 					Code:   "A00",
 					Price:  42,
@@ -159,6 +164,11 @@ Capital gains: -81.190 (-13.165%)`,
 					Price:  185,
 					Volume: 200,
 				},
+				"WRONG": {
+					Code:   "WRONG",
+					Price:  68,
+					Volume: 13000,
+				},
 				"123": {
 					Code:   "123",
 					Price:  2.5,
@@ -168,6 +178,11 @@ Capital gains: -81.190 (-13.165%)`,
 					Code:   "JKLM",
 					Price:  0.5,
 					Volume: 1,
+				},
+				"OOPS": {
+					Code:   "OOPS",
+					Price:  240,
+					Volume: 10000,
 				},
 			},
 			sgxInput: map[string]float64{
@@ -186,6 +201,8 @@ Capital gains: -81.190 (-13.165%)`,
 | ZYX  | 220.200 | 185.000 | 35.200 |  19.027 |  200 |  7040.000 |
 ` + "```" +
 				`
+List of unknown codes: INVALID, OOPS, WRONG
+
 Current portfolio: 122097.680
 Total invested: 79058.000
 Capital gains: 43039.680 (54.441%)`,
@@ -236,6 +253,8 @@ Capital gains: 43039.680 (54.441%)`,
 +------+-----+---------+-----------+
 ` + "```" +
 				`
+List of unknown codes: INVALID, OOPS, WRONG
+
 Current portfolio: 122097.680
 Total invested: 79058.000
 Capital gains: 43039.680 (54.441%)`,
@@ -251,12 +270,16 @@ Capital gains: 43039.680 (54.441%)`,
 			},
 		}
 		sgx := &priceSource{
-			get: func(code string) (float64, error) { return test.sgxInput[code], nil },
+			get: func(code string) (float64, error) { 
+				if price, ok := test.sgxInput[code]; ok {
+					return price, nil 
+				}
+				return 0.0, fmt.Errorf("No input price")
+			},
 		}
 		yahoo := &priceSource{
 			get: func(code string) (float64, error) {
-				t.Error("Should call sgx price source")
-				return 0.0, nil
+				return 0.0, fmt.Errorf("No input price")
 			},
 		}
 		t.Run("Test getStatistics", func(t *testing.T) {
