@@ -63,7 +63,7 @@ func Initialize() {
 		if update.Message.IsCommand() {
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
 			switch update.Message.Command() {
-			case "portfolio":
+			case "summary":
 				msg.ParseMode = "Markdown"
 				msg.Text = fs.getStatistics(newCustomSgx(), newCustomYahoo(), formatTable)
 			case "add":
@@ -176,19 +176,16 @@ func formatTable(stockInfos []stockInfo) string {
 	for _, i := range stockInfos {
 		strings := []string{
 			i.Code,
-			fmt.Sprintf("%.3f", i.CurrentPrice),
-			fmt.Sprintf("%.3f", i.Average),
-			fmt.Sprintf("%.3f", i.Diff),
-			fmt.Sprintf("%.3f", i.DiffPercentage),
-			fmt.Sprintf("%v", i.Volume),
-			fmt.Sprintf("%.3f", i.Profit),
+			fmt.Sprintf("%.2f", i.CurrentPrice),
+			fmt.Sprintf("%.2f", i.DiffPercentage),
+			fmt.Sprintf("%.2f", i.Profit),
 		}
 		formatted = append(formatted, strings)
 	}
 
 	tableString := &strings.Builder{}
 	table := tablewriter.NewWriter(tableString)
-	table.SetHeader([]string{"Code", "Now", "Avg", "Diff", "%", "Vol", "Total"})
+	table.SetHeader([]string{"", "Now", "%", "+/-"})
 	table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
 	table.SetCenterSeparator("|")
 	table.AppendBulk(formatted)
