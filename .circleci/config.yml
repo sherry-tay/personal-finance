@@ -19,6 +19,9 @@ jobs:
     ####   /go/src/bitbucket.org/circleci/go-tool
     working_directory: /go/src/github.com/sherry-tay/personal-finance
     
+    environment: # environment variables for the build itself
+      TEST_RESULTS: /tmp/test-results
+
     steps:
       - checkout
 
@@ -33,7 +36,16 @@ jobs:
           paths:
             - "/go/pkg/mod"
 
-      - run: go test -v ./...
+      - run: mkdir -p $TEST_RESULTS
+      
+      - run: gotestsum --junitfile ${TEST_RESULTS}/gotestsum-report.xml -- ./...
+
+      - store_artifacts:
+          path: /tmp/test-results
+          destination: raw-test-output
+
+      - store_test_results:
+          path: /tmp/test-results
 
   deploy:
     docker:

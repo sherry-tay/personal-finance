@@ -95,14 +95,14 @@ func getPriceResponse(ticker string, sgx, yahoo *priceSource) string {
 }
 
 func getPrice(ticker string, sgx, yahoo *priceSource) (float64, error) {
-	fmt.Printf("Attempting to fetch price from SGX for %v", ticker)
+	fmt.Printf("Attempting to fetch price from SGX for %v\n", ticker)
 	if current, err := sgx.get(ticker); err == nil {
-		fmt.Printf("Obtained price from SGX for %v: %v", ticker, current)
+		fmt.Printf("Obtained price from SGX for %v: %v\n", ticker, current)
 		return current, nil
 	}
-	fmt.Printf("Attempting to fetch price from Yahoo for %v", ticker)
+	fmt.Printf("Attempting to fetch price from Yahoo for %v\n", ticker)
 	if current, err := yahoo.get(ticker); err == nil {
-		fmt.Printf("Obtained price from Yahoo for %v: %v", ticker, current)
+		fmt.Printf("Obtained price from Yahoo for %v: %v\n", ticker, current)
 		return current, nil
 	}
 	return 0.0, fmt.Errorf("Something went wrong while fetching price of %v", ticker)
@@ -128,7 +128,7 @@ func (fs *customFirestore) getStatistics(sgx, yahoo *priceSource, formatter func
 		value := averagePrice[key]
 		current, err := getPrice(key, sgx, yahoo)
 		if err != nil {
-			fmt.Printf("Unable to find price for %v", key)
+			fmt.Printf("Unable to find price for %v\n", key)
 			unknownCodes = append(unknownCodes, key)
 			continue
 		}
