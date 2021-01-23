@@ -411,6 +411,27 @@ func TestAddHoldings(t *testing.T) {
 		})
 	}
 }
+func TestDefault(t *testing.T) {
+	commands := []string {"/help", "/default", "/anything", "/command", "/any", "/invalid", "/"}
+	expectedText := `Use one of the commands available. 
+
+To check the price, follow the format: "/price <ticker>" where ticker is the ticker found in either SGX or Yahoo e.g. /price AAPL.
+
+To add, follow the format: "/add <code> <price> <volume> <yyyymmdd> <stored location>" e.g. /add ABC 1.23 100 20210101 mybroker.`
+
+	for _, command := range commands {
+		t.Run("Test default", func(t *testing.T) {
+			if actualText, actualParseMode := routeCommands(mockTelegramMessage(command, ""), nil, nil, nil); actualText != expectedText || actualParseMode != ""  {
+				t.Errorf("default = %v %v, expected  %v ''", actualText, actualParseMode, expectedText)
+			}
+		})
+		t.Run("Test default with args", func(t *testing.T) {
+			if actualText, actualParseMode := routeCommands(mockTelegramMessage(command, "args"), nil, nil, nil); actualText != expectedText || actualParseMode != ""  {
+				t.Errorf("default = %v %v, expected  %v ''", actualText, actualParseMode, expectedText)
+			}
+		})
+	}
+}
 
 func mockTelegramMessage(command, commandArgs string) *tgbotapi.Message {
 	return &tgbotapi.Message{
