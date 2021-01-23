@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/sherry-tay/personal-finance/internal/firestore"
 )
 
@@ -36,8 +37,8 @@ func TestGetPriceResponse(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run("Test getPriceResponse", func(t *testing.T) {
-			if actual := getPriceResponse("FOO", test.sgx, test.yahoo); actual != test.expected {
-				t.Errorf("getPriceResponse() = %v, expected  %v", actual, test.expected)
+			if actualText, actualParseMode := routeCommands(mockTelegramMessage("/price", "FOO"), test.sgx, test.yahoo, nil); actualText != test.expected || actualParseMode != "" {
+				t.Errorf("getPriceResponse() = %v %v, expected  %v ''", actualText, actualParseMode, test.expected)
 			}
 		})
 	}
@@ -270,9 +271,9 @@ Capital gains: 43039.680 (54.441%)`,
 			},
 		}
 		sgx := &priceSource{
-			get: func(code string) (float64, error) { 
+			get: func(code string) (float64, error) {
 				if price, ok := test.sgxInput[code]; ok {
-					return price, nil 
+					return price, nil
 				}
 				return 0.0, fmt.Errorf("No input price")
 			},
@@ -283,11 +284,11 @@ Capital gains: 43039.680 (54.441%)`,
 			},
 		}
 		t.Run("Test getStatistics", func(t *testing.T) {
-			if actual := fs.getStatistics(sgx, yahoo, formatTable); actual != test.expected {
-				t.Errorf("getStatistics(formatTable) = %v, expected  %v", actual, test.expected)
+			if actualText, actualParseMode := routeCommands(mockTelegramMessage("/summary", ""), sgx, yahoo, fs); actualText != test.expected || actualParseMode != "Markdown" {
+				t.Errorf("getStatistics(formatTable) = %v %v, expected  %v Markdown", actualText, actualParseMode, test.expected)
 			}
-			if actual := fs.getStatistics(sgx, yahoo, formatDetailedTable); actual != test.expectedDetailed {
-				t.Errorf("getStatistics(formatDetailedTable) = %v, expected  %v", actual, test.expectedDetailed)
+			if actualText, actualParseMode := routeCommands(mockTelegramMessage("/detailed", ""), sgx, yahoo, fs); actualText != test.expectedDetailed || actualParseMode != "Markdown" {
+				t.Errorf("getStatistics(formatDetailedTable) = %v %v, expected  %v Markdown", actualText, actualParseMode, test.expectedDetailed)
 			}
 		})
 	}
@@ -404,9 +405,22 @@ func TestAddHoldings(t *testing.T) {
 			},
 		}
 		t.Run("Test addHoldings - "+test.testName, func(t *testing.T) {
-			if actual := fs.addHoldings(test.input); actual != test.expected || argID != test.expectedID || argStock != test.expectedStock {
-				t.Errorf("addHoldings() = %v %v %v, expected  %v %v %v", actual, argID, argStock, test.expected, test.expectedID, test.expectedStock)
+			if actualText, actualParseMode := routeCommands(mockTelegramMessage("/add", test.input), nil, nil, fs); actualText != test.expected || actualParseMode != "" || argID != test.expectedID || argStock != test.expectedStock {
+				t.Errorf("addHoldings() = %v %v %v %v, expected  %v '' %v %v", actualText, actualParseMode, argID, argStock, test.expected, test.expectedID, test.expectedStock)
 			}
 		})
+	}
+}
+
+func mockTelegramMessage(command, commandArgs string) *tgbotapi.Message {
+	return &tgbotapi.Message{
+		Entities: &[]tgbotapi.MessageEntity{
+			{
+				Type:   "bot_command",
+				Offset: 0,
+				Length: len(command),
+			},
+		},
+		Text: command + " " + commandArgs,
 	}
 }

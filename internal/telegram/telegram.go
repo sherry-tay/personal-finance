@@ -34,7 +34,7 @@ func Initialize() {
 	}
 	bot.Debug = true
 
-	fmt.Printf("Authorized on account %s", bot.Self.UserName)
+	fmt.Printf("Authorized on account %s\n", bot.Self.UserName)
 
 	if webhookURL != "" {
 		if _, err = bot.SetWebhook(tgbotapi.NewWebhook(webhookURL + "/" + bot.Token)); err != nil {
@@ -45,6 +45,8 @@ func Initialize() {
 	updates := bot.ListenForWebhook("/" + bot.Token)
 	go http.ListenAndServe("0.0.0.0:"+port, nil)
 
+	sgx := newCustomSgx()
+	yahoo := newCustomYahoo()
 	fs := newCustomFirestore()
 
 	for update := range updates {
@@ -52,7 +54,7 @@ func Initialize() {
 			continue
 		}
 
-		fmt.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
+		fmt.Printf("[%s] %s\n", update.Message.From.UserName, update.Message.Text)
 
 		if update.Message.Chat.UserName != authorizedUser || update.Message.Chat.Type != "private" {
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Sorry, this is a private personal bot!")
@@ -62,26 +64,34 @@ func Initialize() {
 
 		if update.Message.IsCommand() {
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
-			switch update.Message.Command() {
-			case "summary":
-				msg.ParseMode = "Markdown"
-				msg.Text = fs.getStatistics(newCustomSgx(), newCustomYahoo(), formatTable)
-			case "add":
-				msg.Text = fs.addHoldings(update.Message.CommandArguments())
-			case "detailed":
-				msg.ParseMode = "Markdown"
-				msg.Text = fs.getStatistics(newCustomSgx(), newCustomYahoo(), formatDetailedTable)
-			case "price":
-				msg.Text = getPriceResponse(update.Message.CommandArguments(), newCustomSgx(), newCustomYahoo())
-			case "html":
-				msg.ParseMode = "html"
-				msg.Text = "This will be interpreted as HTML, click <a href=\"https://www.example.com\">here</a>"
-			default:
-				msg.Text = `Use one of the commands available. To add, follow the format: "/add <code> <price> <volume> <yyyymmdd> <stored location>" e.g. /add ABC 1.23 100 20210101 mybroker`
-			}
+			text, parseMode := routeCommands(update.Message, sgx, yahoo, fs)
+			msg.Text = text
+			msg.ParseMode = parseMode
 			bot.Send(msg)
 		}
 	}
+}
+
+func routeCommands(message *tgbotapi.Message, sgx, yahoo *priceSource, firestore *customFirestore) (text, parseMode string) {
+	switch message.Command() {
+	case "summary":
+		parseMode = "Markdown"
+		text = firestore.getStatistics(sgx, yahoo, formatTable)
+	case "detailed":
+		parseMode = "Markdown"
+		text = firestore.getStatistics(sgx, yahoo, formatDetailedTable)
+	case "price":
+		text = getPriceResponse(message.CommandArguments(), sgx, yahoo)
+	case "add":
+		text = firestore.addHoldings(message.CommandArguments())
+	default:
+		text = `Use one of the commands available. 
+
+To check the price, follow the format: "/price <ticker>" where ticker is the ticker found in either SGX or Yahoo e.g. /price AAPL.
+
+To add, follow the format: "/add <code> <price> <volume> <yyyymmdd> <stored location>" e.g. /add ABC 1.23 100 20210101 mybroker.`
+	}
+	return
 }
 
 func getPriceResponse(ticker string, sgx, yahoo *priceSource) string {
