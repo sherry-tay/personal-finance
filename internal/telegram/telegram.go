@@ -98,24 +98,24 @@ func getPriceResponse(ticker string, sgx, yahoo *priceSource) string {
 	if ticker == "" {
 		return "Please enter a valid SGX or Yahoo ticker"
 	}
-	if current, err := getPrice(ticker, sgx, yahoo); err == nil {
-		return fmt.Sprintf("%.3f", current)
+	if current, currency, err := getPrice(ticker, sgx, yahoo); err == nil {
+		return fmt.Sprintf("%s%.3f", currency, current)
 	}
 	return fmt.Sprintf("Something went wrong while fetching price of %v", ticker)
 }
 
-func getPrice(ticker string, sgx, yahoo *priceSource) (float64, error) {
+func getPrice(ticker string, sgx, yahoo *priceSource) (float64, string, error) {
 	fmt.Printf("Attempting to fetch price from SGX for %v\n", ticker)
-	if current, err := sgx.get(ticker); err == nil {
+	if current, currency, err := sgx.get(ticker); err == nil {
 		fmt.Printf("Obtained price from SGX for %v: %v\n", ticker, current)
-		return current, nil
+		return current, currency, nil
 	}
 	fmt.Printf("Attempting to fetch price from Yahoo for %v\n", ticker)
-	if current, err := yahoo.get(ticker); err == nil {
+	if current, currency, err := yahoo.get(ticker); err == nil {
 		fmt.Printf("Obtained price from Yahoo for %v: %v\n", ticker, current)
-		return current, nil
+		return current, currency, nil
 	}
-	return 0.0, fmt.Errorf("Something went wrong while fetching price of %v", ticker)
+	return 0.0, "", fmt.Errorf("Something went wrong while fetching price of %v", ticker)
 }
 
 func (fs *customFirestore) getStatistics(sgx, yahoo *priceSource, formatter func(stockInfos []stockInfo) string) string {
@@ -136,7 +136,7 @@ func (fs *customFirestore) getStatistics(sgx, yahoo *priceSource, formatter func
 	var unknownCodes []string
 	for _, key := range sortedCodes {
 		value := averagePrice[key]
-		current, err := getPrice(key, sgx, yahoo)
+		current, _, err := getPrice(key, sgx, yahoo)
 		if err != nil {
 			fmt.Printf("Unable to find price for %v\n", key)
 			unknownCodes = append(unknownCodes, key)
@@ -280,7 +280,7 @@ func newCustomFirestore() *customFirestore {
 	}
 }
 
-type getCurrentPrice func(code string) (float64, error)
+type getCurrentPrice func(code string) (float64, string, error)
 
 type priceSource struct {
 	get getCurrentPrice

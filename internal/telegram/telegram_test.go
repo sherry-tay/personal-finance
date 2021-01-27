@@ -15,23 +15,23 @@ func TestGetPriceResponse(t *testing.T) {
 		expected   string
 	}{
 		{
-			sgx:      &priceSource{get: func(code string) (float64, error) { return 82, nil }},
-			yahoo:    &priceSource{get: func(code string) (float64, error) { return 24.5, nil }},
-			expected: "82.000",
+			sgx:      &priceSource{get: func(code string) (float64, string, error) { return 82, "USD", nil }},
+			yahoo:    &priceSource{get: func(code string) (float64, string, error) { return 24.5, "SGD", nil }},
+			expected: "USD82.000",
 		},
 		{
-			sgx:      &priceSource{get: func(code string) (float64, error) { return 3.4, nil }},
-			yahoo:    &priceSource{get: func(code string) (float64, error) { return 0.0, fmt.Errorf("Yahoo error") }},
-			expected: "3.400",
+			sgx:      &priceSource{get: func(code string) (float64, string, error) { return 3.4, "GBP", nil }},
+			yahoo:    &priceSource{get: func(code string) (float64, string, error) { return 0.0, "", fmt.Errorf("Yahoo error") }},
+			expected: "GBP3.400",
 		},
 		{
-			sgx:      &priceSource{get: func(code string) (float64, error) { return 0.0, fmt.Errorf("Sgx error") }},
-			yahoo:    &priceSource{get: func(code string) (float64, error) { return 871.24122, nil }},
-			expected: "871.241",
+			sgx:      &priceSource{get: func(code string) (float64, string, error) { return 0.0, "", fmt.Errorf("Sgx error") }},
+			yahoo:    &priceSource{get: func(code string) (float64, string, error) { return 871.24122, "EUR", nil }},
+			expected: "EUR871.241",
 		},
 		{
-			sgx:      &priceSource{get: func(code string) (float64, error) { return 0.0, fmt.Errorf("Sgx error") }},
-			yahoo:    &priceSource{get: func(code string) (float64, error) { return 0.0, fmt.Errorf("Yahoo error") }},
+			sgx:      &priceSource{get: func(code string) (float64, string, error) { return 0.0, "", fmt.Errorf("Sgx error") }},
+			yahoo:    &priceSource{get: func(code string) (float64, string, error) { return 0.0, "", fmt.Errorf("Yahoo error") }},
 			expected: "Something went wrong while fetching price of FOO",
 		},
 	}
@@ -271,16 +271,16 @@ Capital gains: 43039.680 (54.441%)`,
 			},
 		}
 		sgx := &priceSource{
-			get: func(code string) (float64, error) {
+			get: func(code string) (float64, string, error) {
 				if price, ok := test.sgxInput[code]; ok {
-					return price, nil
+					return price, "", nil
 				}
-				return 0.0, fmt.Errorf("No input price")
+				return 0.0, "", fmt.Errorf("No input price")
 			},
 		}
 		yahoo := &priceSource{
-			get: func(code string) (float64, error) {
-				return 0.0, fmt.Errorf("No input price")
+			get: func(code string) (float64, string, error) {
+				return 0.0, "", fmt.Errorf("No input price")
 			},
 		}
 		t.Run("Test getStatistics", func(t *testing.T) {

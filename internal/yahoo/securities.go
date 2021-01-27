@@ -17,6 +17,7 @@ type SecuritiesMeta struct {
 
 // SecuritiesPrice in SecuritiesMeta
 type SecuritiesPrice struct {
-	Symbol string  `json:"symbol"`
-	Price  float64 `json:"regularMarketPrice"`
+	Symbol   string  `json:"symbol"`
+	Price    float64 `json:"regularMarketPrice"`
+	Currency string  `json:"currency"`
 }
