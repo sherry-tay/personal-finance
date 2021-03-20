@@ -37,7 +37,7 @@ func TestGetPriceResponse(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run("Test getPriceResponse", func(t *testing.T) {
-			if actualText, actualParseMode := routeCommands(mockTelegramMessage("/price", "FOO"), test.sgx, test.yahoo, nil); actualText != test.expected || actualParseMode != "" {
+			if actualText, actualParseMode := routeCommands(mockTelegramMessage("/price", "FOO"), test.sgx, test.yahoo, nil, nil); actualText != test.expected || actualParseMode != "" {
 				t.Errorf("getPriceResponse() = %v %v, expected  %v ''", actualText, actualParseMode, test.expected)
 			}
 		})
@@ -85,8 +85,11 @@ func TestGetProfit(t *testing.T) {
 
 func TestGetStatistics(t *testing.T) {
 	tests := []struct {
-		firestoreInput             map[string]firestore.Stock
-		sgxInput                   map[string]float64
+		firestoreInput map[string]firestore.Stock
+		sgxInput       map[string]struct {
+			price    float64
+			currency string
+		}
 		expected, expectedDetailed string
 	}{
 		{
@@ -102,9 +105,18 @@ func TestGetStatistics(t *testing.T) {
 					Volume: 87,
 				},
 			},
-			sgxInput: map[string]float64{
-				"ABC": 3.18,
-				"DEF": 2.5,
+			sgxInput: map[string]struct {
+				price    float64
+				currency string
+			}{
+				"ABC": {
+					price: 3.18,
+					currency: "SGD",
+				},
+				"DEF": {
+					price: 2.5,
+					currency: "",
+				},
 			},
 			expected: "```" +
 				`
@@ -150,6 +162,74 @@ Capital gains: -81.190 (-13.165%)`,
 		},
 		{
 			firestoreInput: map[string]firestore.Stock{
+				"QWE": {
+					Code:   "QWE",
+					Price:  1.234,
+					Volume: 100,
+				},
+				"RTY": {
+					Code:   "RTY",
+					Price:  5.67,
+					Volume: 87,
+				},
+			},
+			sgxInput: map[string]struct {
+				price    float64
+				currency string
+			}{
+				"QWE": {
+					price: 3.18,
+					currency: "SGD",
+				},
+				"RTY": {
+					price: 2.5,
+					currency: "USD",
+				},
+			},
+			expected: "```" +
+				`
+|     | NOW  |   %    |   +/-   |
+|-----|------|--------|---------|
+| QWE | 3.18 | 157.70 |  194.60 |
+| RTY | 3.33 | -41.21 | -203.29 |
+` + "```" +
+				`
+Current portfolio: 608.000
+Total invested: 616.690
+Capital gains: -8.690 (-1.409%)`,
+			expectedDetailed: "```" +
+				`
++-----+-----+--------+----------+
+|     |     |  PER   |  TOTAL   |
++-----+-----+--------+----------+
+| QWE | Vol |      1 |      100 |
++     +-----+--------+----------+
+|     | Now |  3.180 |  318.000 |
++     +-----+--------+----------+
+|     | Avg |  1.234 |  123.400 |
++     +-----+--------+----------+
+|     | Dif |  1.946 |  194.600 |
++     +-----+--------+----------+
+|     | %   |        |  157.699 |
++-----+-----+--------+----------+
+| RTY | Vol |      1 |       87 |
++     +-----+--------+----------+
+|     | Now |  3.333 |  290.000 |
++     +-----+--------+----------+
+|     | Avg |  5.670 |  493.290 |
++     +-----+--------+----------+
+|     | Dif | -2.337 | -203.290 |
++     +-----+--------+----------+
+|     | %   |        |  -41.211 |
++-----+-----+--------+----------+
+` + "```" +
+				`
+Current portfolio: 608.000
+Total invested: 616.690
+Capital gains: -8.690 (-1.409%)`,
+		},
+		{
+			firestoreInput: map[string]firestore.Stock{
 				"INVALID": {
 					Code:   "INVALID",
 					Price:  2000,
@@ -186,11 +266,26 @@ Capital gains: -81.190 (-13.165%)`,
 					Volume: 10000,
 				},
 			},
-			sgxInput: map[string]float64{
-				"A00":  78,
-				"123":  2.5,
-				"ZYX":  220.2,
-				"JKLM": 0.18,
+			sgxInput: map[string]struct {
+				price    float64
+				currency string
+			}{
+				"A00": {
+					price:    78,
+					currency: "",
+				},
+				"123": {
+					price:    2.5,
+					currency: "SGD",
+				},
+				"ZYX": {
+					price:    220.2,
+					currency: "",
+				},
+				"JKLM": {
+					price:    0.18,
+					currency: "SGD",
+				},
 			},
 			expected: "```" +
 				`
@@ -272,8 +367,8 @@ Capital gains: 43039.680 (54.441%)`,
 		}
 		sgx := &priceSource{
 			get: func(code string) (float64, string, error) {
-				if price, ok := test.sgxInput[code]; ok {
-					return price, "", nil
+				if stock, ok := test.sgxInput[code]; ok {
+					return stock.price, stock.currency, nil
 				}
 				return 0.0, "", fmt.Errorf("No input price")
 			},
@@ -283,11 +378,14 @@ Capital gains: 43039.680 (54.441%)`,
 				return 0.0, "", fmt.Errorf("No input price")
 			},
 		}
+		currencyConverter := func(currency string) (float64, error) {
+			return 0.75, nil
+		}
 		t.Run("Test getStatistics", func(t *testing.T) {
-			if actualText, actualParseMode := routeCommands(mockTelegramMessage("/summary", ""), sgx, yahoo, fs); actualText != test.expected || actualParseMode != "Markdown" {
+			if actualText, actualParseMode := routeCommands(mockTelegramMessage("/summary", ""), sgx, yahoo, currencyConverter, fs); actualText != test.expected || actualParseMode != "Markdown" {
 				t.Errorf("getStatistics(formatTable) = %v %v, expected  %v Markdown", actualText, actualParseMode, test.expected)
 			}
-			if actualText, actualParseMode := routeCommands(mockTelegramMessage("/detailed", ""), sgx, yahoo, fs); actualText != test.expectedDetailed || actualParseMode != "Markdown" {
+			if actualText, actualParseMode := routeCommands(mockTelegramMessage("/detailed", ""), sgx, yahoo, currencyConverter, fs); actualText != test.expectedDetailed || actualParseMode != "Markdown" {
 				t.Errorf("getStatistics(formatDetailedTable) = %v %v, expected  %v Markdown", actualText, actualParseMode, test.expectedDetailed)
 			}
 		})
@@ -405,14 +503,14 @@ func TestAddHoldings(t *testing.T) {
 			},
 		}
 		t.Run("Test addHoldings - "+test.testName, func(t *testing.T) {
-			if actualText, actualParseMode := routeCommands(mockTelegramMessage("/add", test.input), nil, nil, fs); actualText != test.expected || actualParseMode != "" || argID != test.expectedID || argStock != test.expectedStock {
+			if actualText, actualParseMode := routeCommands(mockTelegramMessage("/add", test.input), nil, nil, nil, fs); actualText != test.expected || actualParseMode != "" || argID != test.expectedID || argStock != test.expectedStock {
 				t.Errorf("addHoldings() = %v %v %v %v, expected  %v '' %v %v", actualText, actualParseMode, argID, argStock, test.expected, test.expectedID, test.expectedStock)
 			}
 		})
 	}
 }
 func TestDefault(t *testing.T) {
-	commands := []string {"/help", "/default", "/anything", "/command", "/any", "/invalid", "/"}
+	commands := []string{"/help", "/default", "/anything", "/command", "/any", "/invalid", "/"}
 	expectedText := `Use one of the commands available. 
 
 To check the price, follow the format: "/price <ticker>" where ticker is the ticker found in either SGX or Yahoo e.g. /price AAPL.
@@ -421,12 +519,12 @@ To add, follow the format: "/add <code> <price> <volume> <yyyymmdd> <stored loca
 
 	for _, command := range commands {
 		t.Run("Test default", func(t *testing.T) {
-			if actualText, actualParseMode := routeCommands(mockTelegramMessage(command, ""), nil, nil, nil); actualText != expectedText || actualParseMode != ""  {
+			if actualText, actualParseMode := routeCommands(mockTelegramMessage(command, ""), nil, nil, nil, nil); actualText != expectedText || actualParseMode != "" {
 				t.Errorf("default = %v %v, expected  %v ''", actualText, actualParseMode, expectedText)
 			}
 		})
 		t.Run("Test default with args", func(t *testing.T) {
-			if actualText, actualParseMode := routeCommands(mockTelegramMessage(command, "args"), nil, nil, nil); actualText != expectedText || actualParseMode != ""  {
+			if actualText, actualParseMode := routeCommands(mockTelegramMessage(command, "args"), nil, nil, nil, nil); actualText != expectedText || actualParseMode != "" {
 				t.Errorf("default = %v %v, expected  %v ''", actualText, actualParseMode, expectedText)
 			}
 		})

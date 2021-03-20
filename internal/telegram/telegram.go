@@ -20,6 +20,7 @@ import (
 )
 
 const dateInputFormat = "20060102" // 2006-Jan-02
+const baseCurrency = "SGD"
 
 var telegramBotToken = os.Getenv("TELEGRAM_BOT_TOKEN")
 var webhookURL = os.Getenv("TELEGRAM_WEBHOOK_URL")
@@ -64,7 +65,7 @@ func Initialize() {
 
 		if update.Message.IsCommand() {
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
-			text, parseMode := routeCommands(update.Message, sgx, yahoo, fs)
+			text, parseMode := routeCommands(update.Message, sgx, yahoo, getCurrency, fs)
 			msg.Text = text
 			msg.ParseMode = parseMode
 			bot.Send(msg)
@@ -72,14 +73,14 @@ func Initialize() {
 	}
 }
 
-func routeCommands(message *tgbotapi.Message, sgx, yahoo *priceSource, firestore *customFirestore) (text, parseMode string) {
+func routeCommands(message *tgbotapi.Message, sgx, yahoo *priceSource, currencyConverter func(currency string) (float64, error), firestore *customFirestore) (text, parseMode string) {
 	switch message.Command() {
 	case "summary":
 		parseMode = "Markdown"
-		text = firestore.getStatistics(sgx, yahoo, formatTable)
+		text = firestore.getStatistics(sgx, yahoo, currencyConverter, formatTable)
 	case "detailed":
 		parseMode = "Markdown"
-		text = firestore.getStatistics(sgx, yahoo, formatDetailedTable)
+		text = firestore.getStatistics(sgx, yahoo, currencyConverter, formatDetailedTable)
 	case "price":
 		text = getPriceResponse(message.CommandArguments(), sgx, yahoo)
 	case "add":
@@ -118,7 +119,7 @@ func getPrice(ticker string, sgx, yahoo *priceSource) (float64, string, error) {
 	return 0.0, "", fmt.Errorf("Something went wrong while fetching price of %v", ticker)
 }
 
-func (fs *customFirestore) getStatistics(sgx, yahoo *priceSource, formatter func(stockInfos []stockInfo) string) string {
+func (fs *customFirestore) getStatistics(sgx, yahoo *priceSource, currencyConverter func(currency string) (float64, error), formatter func(stockInfos []stockInfo) string) string {
 	var data []stockInfo
 	totalPortfolio, totalInvested := 0.0, 0.0
 
@@ -136,11 +137,18 @@ func (fs *customFirestore) getStatistics(sgx, yahoo *priceSource, formatter func
 	var unknownCodes []string
 	for _, key := range sortedCodes {
 		value := averagePrice[key]
-		current, _, err := getPrice(key, sgx, yahoo)
+		current, currency, err := getPrice(key, sgx, yahoo)
 		if err != nil {
 			fmt.Printf("Unable to find price for %v\n", key)
 			unknownCodes = append(unknownCodes, key)
 			continue
+		}
+		if currency != "" && currency != baseCurrency {
+			currencyConversion, err := currencyConverter(currency)
+			if err != nil {
+				fmt.Printf("Unable to find currency for %v\n", currency)
+			}
+			current = current / currencyConversion	
 		}
 		diff, percentage, profit := getProfit(current, value.Price, value.Volume)
 
@@ -169,6 +177,10 @@ func (fs *customFirestore) getStatistics(sgx, yahoo *priceSource, formatter func
 		"```\n%v```\n%vCurrent portfolio: %.3f\nTotal invested: %.3f\nCapital gains: %.3f (%.3f%%)",
 		formatter(data), unknownCodesString, totalPortfolio, totalInvested, totalDiff, totalPercentage,
 	)
+}
+
+func getCurrency(securityCurrency string) (float64, error) {
+	return yahoo.GetCurrency(baseCurrency, securityCurrency)
 }
 
 func getProfit(current, average float64, volume int) (float64, float64, float64) {

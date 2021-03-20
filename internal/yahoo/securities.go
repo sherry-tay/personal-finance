@@ -21,3 +21,24 @@ type SecuritiesPrice struct {
 	Price    float64 `json:"regularMarketPrice"`
 	Currency string  `json:"currency"`
 }
+
+// CurrencyChart from Yahoo
+type CurrencyChart struct {
+	Chart CurrencyResult `json:"chart"`
+}
+
+// CurrencyResult in CurrencyChart
+type CurrencyResult struct {
+	Result []CurrencyMeta `json:"result"`
+}
+
+// CurrencyMeta in CurrencyResult
+type CurrencyMeta struct {
+	Meta Currency `json:"meta"`
+}
+
+// Currency in CurrencyMeta
+type Currency struct {
+	BaseCurrency string  `json:"currency"`
+	Price        float64 `json:"regularMarketPrice"`
+}
