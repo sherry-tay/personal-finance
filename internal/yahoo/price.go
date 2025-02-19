@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	endpoint = "https://query1.finance.yahoo.com/v8/finance/chart/"
+	endpoint = "https://query2.finance.yahoo.com/v8/finance/chart/"
 )
 
 // GetCurrentPrice gets the current price of the stock from Yahoo
