@@ -9,7 +9,7 @@ import (
 
 // GetCurrency gets the current price of the buyingCurrency in units of sellingCurrency from Yahoo
 func GetCurrency(buyingCurrency, sellingCurrency string) (float64, error){
-	endpoint := fmt.Sprintf("https://query1.finance.yahoo.com/v8/finance/chart/%s%s=X?interval=1d", buyingCurrency, sellingCurrency)
+	endpoint := fmt.Sprintf("https://query2.finance.yahoo.com/v8/finance/chart/%s%s=X?interval=1d", buyingCurrency, sellingCurrency)
 	resp, err := http.Get(endpoint)
 
 	if err != nil {
