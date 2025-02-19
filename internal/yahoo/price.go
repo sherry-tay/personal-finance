@@ -13,7 +13,13 @@ const (
 
 // GetCurrentPrice gets the current price of the stock from Yahoo
 func GetCurrentPrice(code string) (float64, string, error) {
-	resp, err := http.Get(endpoint + code)
+	req, err := http.NewRequest("GET", endpoint + code, nil)
+	if err != nil {
+		fmt.Printf("Failed to create request to get securities data: %v", err)
+		return 0.0, "", err
+	}
+	req.Header.Set("User-Agent", uuid.NewString())
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		fmt.Printf("Failed to get securities data: %v", err)
 		return 0.0, "", err
