@@ -5,13 +5,20 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/google/uuid"
 )
 
 // GetCurrency gets the current price of the buyingCurrency in units of sellingCurrency from Yahoo
 func GetCurrency(buyingCurrency, sellingCurrency string) (float64, error){
 	endpoint := fmt.Sprintf("https://query2.finance.yahoo.com/v8/finance/chart/%s%s=X?interval=1d", buyingCurrency, sellingCurrency)
-	resp, err := http.Get(endpoint)
-
+	req, err := http.NewRequest("GET", endpoint, nil)
+	if err != nil {
+		fmt.Printf("Failed to create request to get currency data: %v", err)
+		return 0.0, err
+	}
+	req.Header.Set("User-Agent", uuid.NewString())
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		fmt.Printf("Failed to get currency data: %v", err)
 		return 0.0, err
