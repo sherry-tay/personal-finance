@@ -29,7 +29,7 @@ func getFirebaseClient() (*firestore.Client, context.Context, error) {
 		sa := option.WithCredentialsFile(serviceAccountFilePath)
 		app, err = firebase.NewApp(ctx, nil, sa)
 	}
-	
+
 	if err != nil {
 		fmt.Println(err)
 		return nil, nil, err
@@ -88,14 +88,14 @@ func getAveragePrice(list []Stock) map[string]Stock {
 
 	for code, stocks := range collatedMap {
 		sumProduct := 0.0
-		volume := 0
+		volume := 0.0
 		for _, stock := range stocks {
-			sumProduct += stock.Price * float64(stock.Volume)
+			sumProduct += stock.Price * stock.Volume
 			volume += stock.Volume
 		}
 		averaged[code] = Stock{
 			Code:   code,
-			Price:  sumProduct / float64(volume),
+			Price:  sumProduct / volume,
 			Volume: volume,
 		}
 	}
@@ -125,7 +125,7 @@ func AddHoldings(id string, stock Stock) error {
 type Stock struct {
 	Code     string    `firestore:"code"`
 	Price    float64   `firestore:"price"`
-	Volume   int       `firestore:"volume"`
+	Volume   float64   `firestore:"volume"`
 	Date     time.Time `firestore:"date"`
 	StoredIn string    `firestore:"in"`
 }

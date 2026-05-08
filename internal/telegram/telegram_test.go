@@ -46,8 +46,7 @@ func TestGetPriceResponse(t *testing.T) {
 
 func TestGetProfit(t *testing.T) {
 	type args struct {
-		current, average float64
-		volume           int
+		current, average, volume float64
 	}
 	tests := []struct {
 		input                                            args
@@ -72,6 +71,16 @@ func TestGetProfit(t *testing.T) {
 			expectedDiff:       -16.615,
 			expectedPercentage: -20.306,
 			expectedProfit:     -1478.726,
+		},
+		{
+			input: args{
+				current: 50.22,
+				average: 34.72,
+				volume:  1.5,
+			},
+			expectedDiff:       15.5,
+			expectedPercentage: 44.643,
+			expectedProfit:     23.25,
 		},
 	}
 	for _, test := range tests {
@@ -102,7 +111,7 @@ func TestGetStatistics(t *testing.T) {
 				"DEF": {
 					Code:   "DEF",
 					Price:  5.67,
-					Volume: 87,
+					Volume: 87.34,
 				},
 			},
 			sgxInput: map[string]struct {
@@ -123,12 +132,12 @@ func TestGetStatistics(t *testing.T) {
 |     | NOW  |   %    |   +/-   |
 |-----|------|--------|---------|
 | ABC | 3.18 | 157.70 |  194.60 |
-| DEF | 2.50 | -55.91 | -275.79 |
+| DEF | 2.50 | -55.91 | -276.87 |
 ` + "```" +
 				`
-Current portfolio: 535.500
-Total invested: 616.690
-Capital gains: -81.190 (-13.165%)`,
+Current portfolio: 536.350
+Total invested: 618.618
+Capital gains: -82.268 (-13.299%)`,
 			expectedDetailed: "```" +
 				`
 +-----+-----+--------+----------+
@@ -144,21 +153,21 @@ Capital gains: -81.190 (-13.165%)`,
 +     +-----+--------+----------+
 |     | %   |        |  157.699 |
 +-----+-----+--------+----------+
-| DEF | Vol |      1 |       87 |
+| DEF | Vol |      1 |    87.34 |
 +     +-----+--------+----------+
-|     | Now |  2.500 |  217.500 |
+|     | Now |  2.500 |  218.350 |
 +     +-----+--------+----------+
-|     | Avg |  5.670 |  493.290 |
+|     | Avg |  5.670 |  495.218 |
 +     +-----+--------+----------+
-|     | Dif | -3.170 | -275.790 |
+|     | Dif | -3.170 | -276.868 |
 +     +-----+--------+----------+
 |     | %   |        |  -55.908 |
 +-----+-----+--------+----------+
 ` + "```" +
 				`
-Current portfolio: 535.500
-Total invested: 616.690
-Capital gains: -81.190 (-13.165%)`,
+Current portfolio: 536.350
+Total invested: 618.618
+Capital gains: -82.268 (-13.299%)`,
 		},
 		{
 			firestoreInput: map[string]firestore.Stock{
@@ -408,6 +417,20 @@ func TestAddHoldings(t *testing.T) {
 				Code:     "ABC",
 				Price:    1.23,
 				Volume:   100,
+				Date:     time.Date(2020, time.January, 31, 0, 0, 0, 0, time.UTC),
+				StoredIn: "myBroker",
+			},
+		},
+		{
+			testName:     "correct format with volume as float for fractional shares",
+			input:        "ABC 1.23 100.5 20200131 myBroker",
+			expected:     "Successfully added holdings!",
+			shouldRunAdd: true,
+			expectedID:   "20200131-ABC",
+			expectedStock: firestore.Stock{
+				Code:     "ABC",
+				Price:    1.23,
+				Volume:   100.5,
 				Date:     time.Date(2020, time.January, 31, 0, 0, 0, 0, time.UTC),
 				StoredIn: "myBroker",
 			},

@@ -163,8 +163,8 @@ func (fs *customFirestore) getStatistics(sgx, yahoo *priceSource, currencyConver
 		}
 		data = append(data, s)
 
-		totalPortfolio += current * float64(value.Volume)
-		totalInvested += value.Price * float64(value.Volume)
+		totalPortfolio += current * value.Volume
+		totalInvested += value.Price * value.Volume
 	}
 
 	var unknownCodesString string
@@ -183,9 +183,9 @@ func getCurrency(securityCurrency string) (float64, error) {
 	return yahoo.GetCurrency(baseCurrency, securityCurrency)
 }
 
-func getProfit(current, average float64, volume int) (float64, float64, float64) {
+func getProfit(current, average, volume float64) (float64, float64, float64) {
 	diff := (current - average)
-	return round(diff), round(diff / average * 100), round(diff * float64(volume))
+	return round(diff), round(diff / average * 100), round(diff * volume)
 }
 
 func round(val float64) float64 {
@@ -243,7 +243,7 @@ func (fs *customFirestore) addHoldings(arg string) string {
 
 	code := params[0]
 	price, priceErr := strconv.ParseFloat(params[1], 64)
-	volume, volumeErr := strconv.Atoi(params[2])
+	volume, volumeErr := strconv.ParseFloat(params[2], 64)
 	date, dateErr := time.Parse(dateInputFormat, params[3])
 	in := params[4]
 
@@ -273,7 +273,7 @@ type stockInfo struct {
 	Average        float64
 	Diff           float64
 	DiffPercentage float64
-	Volume         int
+	Volume         float64
 	Profit         float64
 }
 

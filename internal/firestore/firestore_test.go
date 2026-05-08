@@ -56,14 +56,14 @@ func TestGetAveragePrice(t *testing.T) {
 				{
 					Code:   "ABC",
 					Price:  10.0,
-					Volume: 300,
+					Volume: 300.5,
 				},
 			},
 			expected: map[string]Stock{
 				"ABC": {
 					Code:   "ABC",
-					Price:  7.2,
-					Volume: 500,
+					Price:  7.2027972027972028,
+					Volume: 500.5,
 				},
 				"DEF": {
 					Code:   "DEF",
