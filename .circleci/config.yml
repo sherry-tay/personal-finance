@@ -17,13 +17,14 @@ jobs:
     #### expecting it in the form of
     ####   /go/src/github.com/circleci/go-tool
     ####   /go/src/bitbucket.org/circleci/go-tool
-    working_directory: /go/src/github.com/sherry-tay/personal-finance
+    working_directory: /go/src/github.com/sherry-tay/personal-finance/telegram
     
     environment: # environment variables for the build itself
       TEST_RESULTS: /tmp/test-results
 
     steps:
-      - checkout
+      - checkout:
+          path: /go/src/github.com/sherry-tay/personal-finance
 
       - restore_cache:
           keys:
@@ -51,10 +52,11 @@ jobs:
     docker:
       - image: hashicorp/terraform
 
-    working_directory: /go/src/github.com/sherry-tay/personal-finance
+    working_directory: /go/src/github.com/sherry-tay/personal-finance/telegram
 
     steps:
-      - checkout
+      - checkout:
+          path: /go/src/github.com/sherry-tay/personal-finance
       - run: cd deploy && terraform init -backend-config="credentials=$GCLOUD_SERVICE_KEY"
       - run: >-
           cd deploy && terraform apply -auto-approve
@@ -77,6 +79,8 @@ workflows:
             branches:
               only: master
       - gcp-gcr/build-and-push-image:
+          path: ./telegram # dockerfile path
+          docker-context: ./telegram # files to include in docker build context
           image: personal-finance
           registry-url: us.gcr.io
           tag: $CIRCLE_WORKFLOW_ID

@@ -17,4 +17,4 @@ COPY main.go go.* ./
 RUN go build
 
 EXPOSE 8080
-CMD ["/app/personal-finance"]
+CMD ["/app/telegram"]

@@ -6,7 +6,7 @@ import (
 	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
-	"github.com/sherry-tay/personal-finance/internal/firestore"
+	"github.com/sherry-tay/personal-finance/telegram/internal/firestore"
 )
 
 func TestGetPriceResponse(t *testing.T) {

@@ -11,9 +11,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sherry-tay/personal-finance/internal/firestore"
-	"github.com/sherry-tay/personal-finance/internal/sgx"
-	"github.com/sherry-tay/personal-finance/internal/yahoo"
+	"github.com/sherry-tay/personal-finance/telegram/internal/firestore"
+	"github.com/sherry-tay/personal-finance/telegram/internal/sgx"
+	"github.com/sherry-tay/personal-finance/telegram/internal/yahoo"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/olekukonko/tablewriter"

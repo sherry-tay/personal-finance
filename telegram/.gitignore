@@ -1,6 +1,5 @@
 personal-finance-*.json
 *.exe
-personal-finance
 *.tfvars
 *.tfstate*
 .terraform

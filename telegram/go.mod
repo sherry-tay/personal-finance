@@ -1,4 +1,4 @@
-module github.com/sherry-tay/personal-finance
+module github.com/sherry-tay/personal-finance/telegram
 
 go 1.26
 
