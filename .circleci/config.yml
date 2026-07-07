@@ -1,36 +1,27 @@
 version: 2.1
 
 orbs:
-  gcp-gcr: circleci/gcp-gcr@0.11.0
+  gcp-gcr: circleci/gcp-gcr@0.16.11
 
 jobs:
   build_and_test:
     docker:
-      - image: circleci/golang:1.15
+      - image: cimg/go:1.26.4
 
-      # Specify service dependencies here if necessary
-      # CircleCI maintains a library of pre-built images
-      # documented at https://circleci.com/docs/2.0/circleci-images/
-      # - image: circleci/postgres:9.4
-
-    #### TEMPLATE_NOTE: go expects specific checkout path representing url
-    #### expecting it in the form of
-    ####   /go/src/github.com/circleci/go-tool
-    ####   /go/src/bitbucket.org/circleci/go-tool
-    working_directory: /go/src/github.com/sherry-tay/personal-finance/telegram
+    working_directory: ~/personal-finance/telegram
     
     environment: # environment variables for the build itself
       TEST_RESULTS: /tmp/test-results
 
     steps:
       - checkout:
-          path: /go/src/github.com/sherry-tay/personal-finance
+          path: ~/personal-finance
 
       - restore_cache:
           keys:
             - go-mod-v4-{{ checksum "go.sum" }}
 
-      - run: go get -v -t -d ./...
+      - run: go mod download
 
       - save_cache:
           key: go-mod-v4-{{ checksum "go.sum" }}
@@ -52,12 +43,14 @@ jobs:
     docker:
       - image: hashicorp/terraform
 
-    working_directory: /go/src/github.com/sherry-tay/personal-finance/telegram
+    working_directory: ~/personal-finance/telegram
 
     steps:
       - checkout:
-          path: /go/src/github.com/sherry-tay/personal-finance
+          path: ~/personal-finance
+
       - run: cd deploy && terraform init -backend-config="credentials=$GCLOUD_SERVICE_KEY"
+
       - run: >-
           cd deploy && terraform apply -auto-approve
           -var "key_file=$GCLOUD_SERVICE_KEY"
@@ -71,6 +64,7 @@ workflows:
   build_test_deploy:
     jobs:
       - build_and_test
+
       - approve_docker_push_deploy:
           type: approval
           requires:
@@ -78,6 +72,7 @@ workflows:
           filters:
             branches:
               only: master
+
       - gcp-gcr/build-and-push-image:
           path: ./telegram # dockerfile path
           docker-context: ./telegram # files to include in docker build context
@@ -86,6 +81,7 @@ workflows:
           tag: $CIRCLE_WORKFLOW_ID
           requires:
             - approve_docker_push_deploy
+
       - deploy:
           requires:
             - gcp-gcr/build-and-push-image
