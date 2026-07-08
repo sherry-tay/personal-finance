@@ -1,4 +1,4 @@
-FROM golang:1.15
+FROM golang:1.26
 
 # For local development
 # ENV TELEGRAM_BOT_TOKEN="TELEGRAM_BOT_TOKEN"
