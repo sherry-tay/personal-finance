@@ -3,3 +3,4 @@ personal-finance-*.json
 *.tfvars
 *.tfstate*
 .terraform
+bin/
